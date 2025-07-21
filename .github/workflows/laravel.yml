@@ -1,12 +1,15 @@
-name: Laravel
+name: Symfony CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+
 jobs:
-  tests:
+  build:
     runs-on: ubuntu-latest
 
     services:
@@ -19,41 +22,43 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
+          --health-cmd "pg_isready -U postgres" 
+          --health-interval 10s 
+          --health-timeout 5s 
           --health-retries 5
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
-          extensions: mbstring, xml, bcmath, pgsql, pdo_pgsql
+          php-version: '8.0'  # Adjust to your required PHP version
+          extensions: mbstring, pdo, pdo_pgsql, xml, intl  # Add any other extensions you need
 
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+      - name: Install Composer Dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist
 
-      - name: Copy .env.example to .env
-        run: cp .env.example .env
-
-      - name: Generate application key
-        run: php artisan key:generate
-
-      - name: Set up database configuration
+      - name: Wait for Database to be Ready
         run: |
-          echo "DB_CONNECTION=pgsql" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_DATABASE=job_board" >> .env
-          echo "DB_USERNAME=postgres" >> .env
-          echo "DB_PASSWORD=1234" >> .env
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for database..."
+            sleep 5
+          done
 
-      - name: Run migrations and seed the database
-        run: php artisan migrate --seed
+      - name: Run Migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
 
-      - name: Run tests
-        run: vendor/bin/pest
+      - name: Load Fixtures (if needed)
+        run: php bin/console doctrine:fixtures:load --no-interaction
+
+      - name: Run Tests
+        run: php bin/console test
+
+      - name: Debug Environment Variables
+        run: printenv
+
+      - name: Check Database Connection
+        run: |
+          php -r "try { new PDO('pgsql:host=127.0.0.1;port=5432;dbname=job_board', 'postgres', '1234'); echo 'Connection successful'; } catch (PDOException $e) { echo 'Connection failed: ' . $e->getMessage(); }"
