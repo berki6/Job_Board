@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AutoApplyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/subscribe', [SubscriptionController::class, 'show'])->name('subscribe');
     Route::post('/subscribe', [SubscriptionController::class, 'create'])->name('subscribe.create');
 });
+
+Route::middleware(['auth', 'premium'])->group(function () {
+    Route::get('/auto-apply', [AutoApplyController::class, 'index'])->name('auto.apply');
+});
+
 
 
 require __DIR__.'/auth.php';
