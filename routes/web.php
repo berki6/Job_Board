@@ -26,8 +26,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth', 'premium'])->group(function () {
     Route::get('/auto-apply', [AutoApplyController::class, 'index'])->name('auto.apply');
+    Route::post('/auto-apply/toggle', [AutoApplyController::class, 'toggle'])->name('auto.apply.toggle');
 });
-
 
 
 require __DIR__.'/auth.php';
