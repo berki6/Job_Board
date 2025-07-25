@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Models\Job;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
+use App\Services\AIServices;
 
 class AutoApplyService
 {
     protected $aiService;
 
-    public function __construct(AIService $aiService)
+    public function __construct(AIServices $aiService)
     {
         $this->aiService = $aiService;
     }

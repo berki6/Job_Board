@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use Google\GenerativeAI\Client;
+use google_gemini_php;
 
-class AIService
+class AIServices
 {
     protected $client;
 
