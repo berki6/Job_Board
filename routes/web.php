@@ -22,11 +22,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/subscribe', [SubscriptionController::class, 'show'])->name('subscribe');
     Route::post('/subscribe', [SubscriptionController::class, 'create'])->name('subscribe.create');
-});
 
-Route::middleware(['auth', 'premium'])->group(function () {
-    Route::get('/auto-apply', [AutoApplyController::class, 'index'])->name('auto.apply');
-    Route::post('/auto-apply/toggle', [AutoApplyController::class, 'toggle'])->name('auto.apply.toggle');
+    Route::middleware(['premium'])->group(function () {
+        Route::get('/auto-apply', [AutoApplyController::class, 'index'])->name('auto.apply');
+        Route::post('/auto-apply/update', [AutoApplyController::class, 'update'])->name('auto.apply.update');
+        Route::get('/auto-apply/toggle', [AutoApplyController::class, 'toggle'])->name('auto.apply.toggle');
+    });
 });
 
 
