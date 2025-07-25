@@ -17,4 +17,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/subscribe', [SubscriptionController::class, 'show'])->name('subscribe');
+    Route::post('/subscribe', [SubscriptionController::class, 'create'])->name('subscribe.create');
+});
+
+
 require __DIR__.'/auth.php';
