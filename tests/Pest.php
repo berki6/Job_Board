@@ -100,13 +100,12 @@ function createAutoApplyPreferences($user, $attributes = [])
         'auto_apply_enabled' => false,
         'job_titles' => null,
         'locations' => null,
-        'job_types' => null, // Optional; remove if dropping column
+        'job_types' => null,
         'salary_min' => null,
         'salary_max' => null,
         'cover_letter_template' => null,
     ];
 
-    // Process attributes to JSON-encode arrays
     $processedAttributes = [];
     foreach ($attributes as $key => $value) {
         $processedAttributes[$key] = in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value)
@@ -114,5 +113,5 @@ function createAutoApplyPreferences($user, $attributes = [])
             : $value;
     }
 
-    return App\Models\AutoApplyPreference::factory()->create(array_merge($defaults, $processedAttributes));
+    return App\Models\AutoApplyPreference::create(array_merge($defaults, $processedAttributes));
 }

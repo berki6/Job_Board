@@ -46,18 +46,38 @@ class AutoApplyService
         $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) : $preferences->locations;
         $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) : $preferences->job_types;
 
+        Log::info('Raw preferences', [
+            'job_titles' => $preferences->job_titles,
+            'locations' => $preferences->locations,
+            'job_types' => $preferences->job_types,
+        ]);
+        Log::info('Processed preferences', [
+            'job_titles' => $jobTitles,
+            'locations' => $locations,
+            'job_types' => $jobTypes,
+            'salary_min' => $preferences->salary_min,
+            'salary_max' => $preferences->salary_max
+        ]);
+
         $jobsQuery = Job::where('status', 'open')
             ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id));
 
         if ($jobTitles && !empty(array_filter($jobTitles))) {
-            $jobsQuery->whereIn('title', (array) $jobTitles);
+            $jobsQuery->where(function ($query) use ($jobTitles) {
+                foreach ((array) $jobTitles as $title) {
+                    $query->orWhere('title', 'LIKE', "%{$title}%");
+                }
+            });
         }
         if ($locations && !empty(array_filter($locations))) {
             $jobsQuery->whereIn('location', (array) $locations);
         }
         if ($jobTypes && !empty(array_filter($jobTypes))) {
             $jobsQuery->leftJoin('job_types', 'jobs_listing.job_type_id', '=', 'job_types.id')
-                ->whereIn('job_types.name', (array) $jobTypes);
+                ->where(function ($query) use ($jobTypes) {
+                    $query->whereRaw('LOWER(job_types.name) IN ?', [array_map('strtolower', (array) $jobTypes)])
+                        ->orWhereNull('jobs_listing.job_type_id');
+                });
         }
         if ($preferences->salary_min) {
             $jobsQuery->where('salary', '>=', (float) $preferences->salary_min);
