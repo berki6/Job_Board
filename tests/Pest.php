@@ -95,16 +95,24 @@ function createApplication($user, $job, $attributes = [])
 
 function createAutoApplyPreferences($user, $attributes = [])
 {
-    return App\Models\AutoApplyPreference::factory()->create(array_merge([
+    $defaults = [
         'user_id' => $user->id,
         'auto_apply_enabled' => false,
         'job_titles' => null,
         'locations' => null,
-        'job_types' => null, // Optional; remove if not needed
+        'job_types' => null, // Optional; remove if dropping column
         'salary_min' => null,
         'salary_max' => null,
         'cover_letter_template' => null,
-    ], array_map(function ($value, $key) {
-        return in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value) ? json_encode($value) : $value;
-    }, $attributes, array_keys($attributes))));
+    ];
+
+    // Process attributes to JSON-encode arrays
+    $processedAttributes = [];
+    foreach ($attributes as $key => $value) {
+        $processedAttributes[$key] = in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value)
+            ? json_encode($value)
+            : $value;
+    }
+
+    return App\Models\AutoApplyPreference::factory()->create(array_merge($defaults, $processedAttributes));
 }

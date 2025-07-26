@@ -11,9 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 describe('AutoApplyService', function () {
     beforeEach(function () {
-        DB::statement('PRAGMA foreign_keys = ON;');
-
-        // Initialize Mockery
+        // $this->artisan('migrate:fresh');
+        // DB::statement('PRAGMA foreign_keys = ON;');
         $this->mockAIService = Mockery::mock(AIServices::class);
         $this->autoApplyService = new AutoApplyService($this->mockAIService);
     });
