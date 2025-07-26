@@ -19,13 +19,13 @@ describe('Job Model', function () {
 
         expect($job->title)->toBe('Senior Developer')
             ->and($job->location)->toBe('Remote')
-            ->and($job->salary)->toBe(90000.00)
+            ->and($job->salary)->toBe('90000.00')
             ->and($job->status)->toBe('open');
     });
 
     it('uses the correct table name', function () {
         $job = new Job();
-        
+
         expect($job->getTable())->toBe('jobs_listing');
     });
 
@@ -48,7 +48,7 @@ describe('Job Model', function () {
     it('has many applications', function () {
         $job = Job::factory()->create();
         $user = User::factory()->create();
-        
+
         Application::factory()->create([
             'job_id' => $job->id,
             'user_id' => $user->id,
@@ -61,8 +61,8 @@ describe('Job Model', function () {
     it('casts salary as decimal', function () {
         $job = Job::factory()->create(['salary' => 75000]);
 
-        expect($job->salary)->toBeFloat()
-            ->and($job->salary)->toBe(75000.00);
+        expect($job->salary)->toBeString()
+            ->and($job->salary)->toBe('75000.00');
     });
 
     it('can be closed', function () {

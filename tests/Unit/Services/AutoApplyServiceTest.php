@@ -8,9 +8,12 @@ use App\Models\Profile;
 use App\Models\AutoApplyPreference;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
+use Illuminate\Support\Facades\DB;
 
 describe('AutoApplyService', function () {
     beforeEach(function () {
+        DB::statement('PRAGMA foreign_keys = ON;');
+
         // Initialize Mockery
         $this->mockAIService = Mockery::mock(AIServices::class);
         $this->autoApplyService = new AutoApplyService($this->mockAIService);
@@ -23,7 +26,7 @@ describe('AutoApplyService', function () {
 
     it('skips non-premium users', function () {
         $user = User::factory()->create();
-        
+
         $this->autoApplyService->processForUser($user);
 
         expect(AutoApplyLog::count())->toBe(0)
@@ -32,7 +35,7 @@ describe('AutoApplyService', function () {
 
     it('skips users without auto apply preferences', function () {
         $user = createPremiumUser();
-        
+
         $this->autoApplyService->processForUser($user);
 
         expect(AutoApplyLog::count())->toBe(0)
@@ -42,7 +45,7 @@ describe('AutoApplyService', function () {
     it('skips users with disabled auto apply', function () {
         $user = createPremiumUser();
         createAutoApplyPreferences($user, ['auto_apply_enabled' => false]);
-        
+
         $this->autoApplyService->processForUser($user);
 
         expect(AutoApplyLog::count())->toBe(0)
@@ -50,12 +53,17 @@ describe('AutoApplyService', function () {
     });
 
     it('processes premium users with enabled auto apply', function () {
-        $user = createPremiumUser();
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
         Profile::factory()->create([
             'user_id' => $user->id,
             'resume_path' => 'resumes/test.pdf'
         ]);
-        
+
         createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
@@ -71,7 +79,7 @@ describe('AutoApplyService', function () {
         $this->mockAIService
             ->shouldReceive('generateCoverLetter')
             ->once()
-            ->with($job, $user, Mockery::any())
+            ->with($job, $user, null)
             ->andReturn('Generated cover letter');
 
         $this->autoApplyService->processForUser($user);
@@ -86,9 +94,14 @@ describe('AutoApplyService', function () {
     });
 
     it('filters jobs by title preferences', function () {
-        $user = createPremiumUser();
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
         Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
-        
+
         createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Frontend Developer'],
@@ -101,30 +114,7 @@ describe('AutoApplyService', function () {
         $this->mockAIService
             ->shouldReceive('generateCoverLetter')
             ->once()
-            ->andReturn('Cover letter');
-
-        $this->autoApplyService->processForUser($user);
-
-        expect(Application::count())->toBe(1)
-            ->and(Application::first()->job_id)->toBe($matchingJob->id);
-    });
-
-    it('filters jobs by location preferences', function () {
-        $user = createPremiumUser();
-        Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
-        
-        createAutoApplyPreferences($user, [
-            'auto_apply_enabled' => true,
-            'job_titles' => [],
-            'locations' => ['Remote']
-        ]);
-
-        Job::factory()->create(['location' => 'New York', 'status' => 'open']);
-        $matchingJob = Job::factory()->create(['location' => 'Remote', 'status' => 'open']);
-
-        $this->mockAIService
-            ->shouldReceive('generateCoverLetter')
-            ->once()
+            ->with($matchingJob, $user, null) // Adjust based on actual cover_letter_template
             ->andReturn('Cover letter');
 
         $this->autoApplyService->processForUser($user);
@@ -134,9 +124,14 @@ describe('AutoApplyService', function () {
     });
 
     it('filters jobs by salary range', function () {
-        $user = createPremiumUser();
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
         Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
-        
+
         createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => [],
@@ -152,6 +147,37 @@ describe('AutoApplyService', function () {
         $this->mockAIService
             ->shouldReceive('generateCoverLetter')
             ->once()
+            ->with($matchingJob, $user, null)
+            ->andReturn('Cover letter');
+
+        $this->autoApplyService->processForUser($user);
+
+        expect(Application::count())->toBe(1)
+            ->and(Application::first()->job_id)->toBe($matchingJob->id);
+    });
+
+    it('filters jobs by location preferences', function () {
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
+        Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
+
+        createAutoApplyPreferences($user, [
+            'auto_apply_enabled' => true,
+            'job_titles' => [],
+            'locations' => ['Remote']
+        ]);
+
+        Job::factory()->create(['location' => 'New York', 'status' => 'open']);
+        $matchingJob = Job::factory()->create(['location' => 'Remote', 'status' => 'open']);
+
+        $this->mockAIService
+            ->shouldReceive('generateCoverLetter')
+            ->once()
+            ->with($matchingJob, $user, null)
             ->andReturn('Cover letter');
 
         $this->autoApplyService->processForUser($user);
@@ -161,13 +187,17 @@ describe('AutoApplyService', function () {
     });
 
     it('skips jobs already applied to', function () {
-        $user = createPremiumUser();
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
         Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
 
         $job = Job::factory()->create(['status' => 'open']);
-        
-        // Create existing application
+
         Application::factory()->create([
             'user_id' => $user->id,
             'job_id' => $job->id
@@ -175,7 +205,7 @@ describe('AutoApplyService', function () {
 
         $this->autoApplyService->processForUser($user);
 
-        expect(Application::count())->toBe(1) // Only the existing one
+        expect(Application::count())->toBe(1)
             ->and(AutoApplyLog::count())->toBe(0);
     });
 
@@ -187,13 +217,18 @@ describe('AutoApplyService', function () {
         $this->autoApplyService->processForUser($user);
 
         expect(AutoApplyLog::where('status', 'failed')->count())->toBe(1);
-        
+
         $log = AutoApplyLog::first();
         expect($log->reason)->toBe('User profile or resume not found');
     });
 
     it('logs failure when AI service throws exception', function () {
-        $user = createPremiumUser();
+        $user = User::factory()->create();
+        $this->mock('alias:Illuminate\Contracts\Auth\Access\Gate')
+            ->shouldReceive('check')
+            ->with('subscribed', ['premium'])
+            ->andReturn(true);
+
         Profile::factory()->create(['user_id' => $user->id, 'resume_path' => 'resume.pdf']);
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
         $job = Job::factory()->create(['status' => 'open']);
@@ -201,12 +236,13 @@ describe('AutoApplyService', function () {
         $this->mockAIService
             ->shouldReceive('generateCoverLetter')
             ->once()
+            ->with($job, $user, null)
             ->andThrow(new Exception('AI service error'));
 
         $this->autoApplyService->processForUser($user);
 
         expect(AutoApplyLog::where('status', 'failed')->count())->toBe(1);
-        
+
         $log = AutoApplyLog::first();
         expect($log->reason)->toBe('AI service error');
     });

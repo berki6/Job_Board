@@ -2,22 +2,33 @@
 
 namespace App\Services;
 
+use App\Contracts\GeminiClientInterface;
+use App\Models\Job;
+use App\Models\User;
 use Gemini\Laravel\Facades\Gemini;
 
 class AIServices
 {
-    public function generateCoverLetter($job, $user, $customTemplate = null)
+    public function __construct(protected GeminiClientInterface $client)
     {
-        // Ensure user has a profile before generating content
-        if (!$user->profile) {
-            throw new \Exception('User profile not found');
+    }
+    public function generateCoverLetter(Job $job, User $user, ?string $preferences = null): string
+    {
+        $formattedSalary = '$' . number_format(floatval($job->salary), 2); // Convert to float before formatting
+        $prompt = "Generate a professional cover letter for the following job:\n\n" .
+            "Job Title: {$job->title}\nLocation: {$job->location}\nSalary: $formattedSalary\n\n" .
+            "Applicant: {$user->name}\nResume Path: " . (isset($user->profile->resume_path) ? $user->profile->resume_path : 'Not provided');
+        if ($preferences['cover_letter_template'] ?? false) {
+            $prompt = str_replace('{job_title}', $job->title, $preferences['cover_letter_template']);
+            $prompt = str_replace('{location}', $job->location, $prompt);
         }
 
-        $prompt = $customTemplate ?? $this->defaultPrompt($job, $user);
 
-        $response = Gemini::geminiPro()->generateContent($prompt);
+        if (!empty($preferences['custom_prompt'])) {
+            $prompt = $preferences['custom_prompt'] . "\n\n" . $prompt;
+        }
 
-        return $response->text();
+        return $this->client->generateText($prompt);
     }
 
     protected function defaultPrompt($job, $user)

@@ -1,14 +1,16 @@
 <?php
 
+use App\Contracts\GeminiClientInterface;
 use App\Services\AIServices;
 use App\Models\User;
 use App\Models\Job;
 use App\Models\Profile;
-use Gemini\Laravel\Facades\Gemini;
 
 describe('AIServices', function () {
     beforeEach(function () {
-        $this->aiService = new AIServices();
+        // Mock the wrapper interface instead of the final Gemini class
+        $this->mockGeminiClient = Mockery::mock(GeminiClientInterface::class);
+        $this->aiService = new AIServices($this->mockGeminiClient);
     });
 
     it('throws exception when user has no profile', function () {
@@ -20,13 +22,8 @@ describe('AIServices', function () {
     });
 
     it('generates cover letter with default prompt', function () {
-        // Mock Gemini response
-        Gemini::shouldReceive('geminiPro->generateContent')
-            ->once()
-            ->andReturn((object) ['text' => fn() => 'Generated cover letter content']);
-
         $user = User::factory()->create();
-        $profile = Profile::factory()->create([
+        Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Experienced developer',
             'skills' => ['PHP', 'Laravel']
@@ -37,30 +34,45 @@ describe('AIServices', function () {
             'description' => 'We need a senior developer'
         ]);
 
+        // Prepare expected default prompt
+        $expectedPrompt = "Generate a cover letter for the following job:\n" .
+            "Title: Senior Developer\nDescription: We need a senior developer\n" .
+            "User: {$user->name}\nBio: Experienced developer\nSkills: PHP, Laravel";
+
+        // Mock Gemini client response
+        $this->mockGeminiClient
+            ->shouldReceive('generateText')
+            ->once()
+            ->with(Mockery::on(fn($prompt) => str_contains($prompt, 'Senior Developer')))
+            ->andReturn('Generated cover letter content');
+
         $result = $this->aiService->generateCoverLetter($job, $user);
 
         expect($result)->toBe('Generated cover letter content');
     });
 
     it('generates cover letter with custom template', function () {
-        // Mock Gemini response
-        Gemini::shouldReceive('geminiPro->generateContent')
-            ->once()
-            ->with('Custom template for cover letter')
-            ->andReturn((object) ['text' => fn() => 'Custom cover letter']);
-
         $user = User::factory()->create();
         Profile::factory()->create(['user_id' => $user->id]);
         $job = Job::factory()->create();
 
-        $result = $this->aiService->generateCoverLetter($job, $user, 'Custom template for cover letter');
+        $customTemplate = 'Custom template for cover letter';
+
+        // Mock Gemini client response
+        $this->mockGeminiClient
+            ->shouldReceive('generateText')
+            ->once()
+            ->with($customTemplate)
+            ->andReturn('Custom cover letter');
+
+        $result = $this->aiService->generateCoverLetter($job, $user, $customTemplate);
 
         expect($result)->toBe('Custom cover letter');
     });
 
     it('creates correct default prompt with user skills', function () {
         $user = User::factory()->create(['name' => 'John Doe']);
-        $profile = Profile::factory()->create([
+        Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Full stack developer with 5 years experience',
             'skills' => ['PHP', 'JavaScript', 'React']
@@ -86,7 +98,7 @@ describe('AIServices', function () {
 
     it('handles user with no skills', function () {
         $user = User::factory()->create(['name' => 'Jane Doe']);
-        $profile = Profile::factory()->create([
+        Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'New developer',
             'skills' => null

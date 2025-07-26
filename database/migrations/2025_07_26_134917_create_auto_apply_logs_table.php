@@ -10,8 +10,8 @@ return new class extends Migration {
         Schema::create('auto_apply_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('job_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['success', 'failed']);
+            $table->foreignId('job_id')->nullable()->after('user_id')->constrained()->cascadeOnDelete();
+            $table->enum('status', ['success', 'failed', 'completed', 'no_jobs_found']);
             $table->string('reason')->nullable();
             $table->timestamps();
         });
