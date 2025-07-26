@@ -18,6 +18,7 @@ class AutoApplyPreference extends Model
     ];
 
     protected $casts = [
+        'auto_apply_enabled' => 'boolean',
         'job_titles' => 'array',
         'locations' => 'array',
         'job_types' => 'array',

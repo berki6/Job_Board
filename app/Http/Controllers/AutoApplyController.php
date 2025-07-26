@@ -12,7 +12,15 @@ class AutoApplyController extends Controller
      */
     public function index(Request $request)
     {
-        $preferences = $request->user()->autoApplyPreference;
+        $preferences = $request->user()->autoApplyPreference ?? new AutoApplyPreference([
+            'user_id' => $request->user()->id,
+            'auto_apply_enabled' => false,
+            'job_titles' => [],
+            'locations' => [],
+            'salary_min' => null,
+            'salary_max' => null,
+            'cover_letter_template' => null,
+        ]);
         return view('auto-apply', compact('preferences'));
     }
 
@@ -51,9 +59,19 @@ class AutoApplyController extends Controller
      */
     public function toggle(Request $request)
     {
-        $preferences = $request->user()->autoApplyPreference;
+        $user = $request->user();
+        $preferences = $user->autoApplyPreference;
 
-        if ($preferences) {
+        if (!$preferences) {
+            // Create new preferences with auto-apply enabled
+            $preferences = new AutoApplyPreference([
+                'user_id' => $user->id,
+                'auto_apply_enabled' => true,
+                'job_titles' => [],
+                'locations' => [],
+            ]);
+            $preferences->save();
+        } else {
             $preferences->auto_apply_enabled = !$preferences->auto_apply_enabled;
             $preferences->save();
         }

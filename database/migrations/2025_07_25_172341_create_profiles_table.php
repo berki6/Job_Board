@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->string('logo_path')->nullable(); // Company logo
             $table->string('resume_path')->nullable(); // For job seekers
+            $table->json('skills')->nullable(); // User skills as JSON array
             $table->timestamps();
         });
 

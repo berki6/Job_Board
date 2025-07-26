@@ -47,4 +47,36 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the user's auto-apply preferences.
+     */
+    public function autoApplyPreference()
+    {
+        return $this->hasOne(AutoApplyPreference::class);
+    }
+
+    /**
+     * Get the user's profile.
+     */
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
+
+    /**
+     * Get the user's job applications.
+     */
+    public function applications()
+    {
+        return $this->hasMany(Application::class);
+    }
+
+    /**
+     * Get the jobs posted by this user (if they're a company).
+     */
+    public function jobs()
+    {
+        return $this->hasMany(Job::class, 'company_id');
+    }
 }

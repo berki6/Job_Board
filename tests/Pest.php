@@ -13,7 +13,7 @@
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +41,57 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+// Helper function to create a user with premium subscription
+function createPremiumUser($attributes = [])
 {
-    // ..
+    $user = \App\Models\User::factory()->create($attributes);
+    $user->createAsStripeCustomer();
+    $user->newSubscription('premium', 'price_test')->create('pm_card_visa');
+    return $user;
+}
+
+// Helper function to create a basic user
+function createUser($attributes = [])
+{
+    return \App\Models\User::factory()->create($attributes);
+}
+
+// Helper function to create a user with profile
+function createUserWithProfile($userAttributes = [], $profileAttributes = [])
+{
+    $user = createUser($userAttributes);
+    $user->profile()->create(array_merge([
+        'bio' => 'Test bio',
+        'phone' => '+1234567890',
+        'resume_path' => 'resumes/test.pdf',
+        'skills' => ['PHP', 'Laravel', 'JavaScript']
+    ], $profileAttributes));
+    return $user;
+}
+
+// Helper function to create a job
+function createJob($attributes = [])
+{
+    $company = createUser(['name' => 'Test Company']);
+    return \App\Models\Job::factory()->create(array_merge([
+        'company_id' => $company->id,
+        'title' => 'Software Developer',
+        'description' => 'Great job opportunity',
+        'location' => 'Remote',
+        'salary' => 75000,
+        'status' => 'open'
+    ], $attributes));
+}
+
+// Helper function to create auto apply preferences
+function createAutoApplyPreferences($user, $attributes = [])
+{
+    return $user->autoApplyPreference()->create(array_merge([
+        'auto_apply_enabled' => true,
+        'job_titles' => ['Developer', 'Engineer'],
+        'locations' => ['Remote', 'New York'],
+        'salary_min' => 50000,
+        'salary_max' => 100000,
+        'cover_letter_template' => 'Custom template'
+    ], $attributes));
 }

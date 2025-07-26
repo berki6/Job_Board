@@ -4,18 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class Skill extends Model
 {
     protected $fillable = [
         'name',
-        'slug',
     ];
 
     /**
-     * Get the jobs in this category.
+     * Get the jobs that require this skill.
      */
     public function jobs()
     {
-        return $this->hasMany(Job::class);
+        return $this->belongsToMany(Job::class, 'jobs_skills');
     }
 }

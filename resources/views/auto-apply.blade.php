@@ -8,13 +8,13 @@
             @csrf
             <div class="mb-4">
                 <label class="block text-gray-700">Preferred Job Titles</label>
-                <input type="text" name="job_titles" value="{{ old('job_titles', json_encode($preferences->job_titles)) }}"
+                <input type="text" name="job_titles" value="{{ old('job_titles', json_encode($preferences->job_titles ?? [])) }}"
                     class="w-full border rounded p-2" placeholder='["Developer","Designer"]'>
             </div>
 
             <div class="mb-4">
                 <label class="block text-gray-700">Locations</label>
-                <input type="text" name="locations" value="{{ old('locations', json_encode($preferences->locations)) }}"
+                <input type="text" name="locations" value="{{ old('locations', json_encode($preferences->locations ?? [])) }}"
                     class="w-full border rounded p-2" placeholder='["Remote","New York"]'>
             </div>
 

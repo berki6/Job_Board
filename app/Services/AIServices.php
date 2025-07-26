@@ -8,6 +8,11 @@ class AIServices
 {
     public function generateCoverLetter($job, $user, $customTemplate = null)
     {
+        // Ensure user has a profile before generating content
+        if (!$user->profile) {
+            throw new \Exception('User profile not found');
+        }
+
         $prompt = $customTemplate ?? $this->defaultPrompt($job, $user);
 
         $response = Gemini::geminiPro()->generateContent($prompt);
@@ -17,7 +22,12 @@ class AIServices
 
     protected function defaultPrompt($job, $user)
     {
-        $skills = $user->profile->skills ?? 'Not specified';
+        // Ensure user has a profile before accessing skills
+        if (!$user->profile) {
+            throw new \Exception('User profile not found');
+        }
+
+        $skills = $user->profile->skills ? implode(', ', $user->profile->skills) : 'Not specified';
         $bio = $user->profile->bio ?? 'Not specified';
 
         return <<<EOT
