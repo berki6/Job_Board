@@ -6,10 +6,6 @@ use App\Models\Job;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
 use App\Services\AIServices;
-use App\Models\User;
-use App\Models\Profile;
-use App\Models\AutoApplyPreference;
-use Illuminate\Support\Facades\DB;
 use Exception;
 
 class AutoApplyService
@@ -23,12 +19,14 @@ class AutoApplyService
 
     public function processForUser($user)
     {
-        if (!$user->subscribed('premium'))
+        if (!$user->subscribed('premium')) {
             return;
+        }
 
         $preferences = $user->autoApplyPreference;
-        if (!$preferences || !$preferences->auto_apply_enabled)
+        if (!$preferences || !$preferences->auto_apply_enabled) {
             return;
+        }
 
         $profile = $user->profile;
         if (!$profile || !$profile->resume_path) {
@@ -40,19 +38,32 @@ class AutoApplyService
             return;
         }
 
-        // Fetch jobs based on user preferences
-        $jobs = Job::where('status', 'open')
-            ->when(
-                !$preferences->job_titles && !$preferences->locations && !$preferences->salary_min && !$preferences->salary_max,
-                fn($q) => $q,
-                fn($q) => $q
-                    ->when($preferences->job_titles && !empty($preferences->job_titles), fn($q) => $q->whereIn('title', $preferences->job_titles))
-                    ->when($preferences->locations && !empty($preferences->locations), fn($q) => $q->whereIn('location', $preferences->locations))
-                    ->when($preferences->salary_min, fn($q) => $q->where('salary', '>=', $preferences->salary_min))
-                    ->when($preferences->salary_max, fn($q) => $q->where('salary', '<=', $preferences->salary_max))
-                    ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id))
-            )
-            ->get();
+        // Decode JSON fields
+        $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) : $preferences->job_titles;
+        $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) : $preferences->locations;
+        $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) : $preferences->job_types;
+
+        $jobsQuery = Job::where('status', 'open')
+            ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id));
+
+        // Apply filters only if preferences are set and non-empty
+        if ($jobTitles && !empty(array_filter($jobTitles))) {
+            $jobsQuery->whereIn('title', (array) $jobTitles);
+        }
+        if ($locations && !empty(array_filter($locations))) {
+            $jobsQuery->whereIn('location', (array) $locations);
+        }
+        if ($jobTypes && !empty(array_filter($jobTypes))) {
+            $jobsQuery->whereIn('type', (array) $jobTypes); // Assumes 'type' column in jobs table
+        }
+        if ($preferences->salary_min) {
+            $jobsQuery->where('salary', '>=', $preferences->salary_min);
+        }
+        if ($preferences->salary_max) {
+            $jobsQuery->where('salary', '<=', $preferences->salary_max);
+        }
+
+        $jobs = $jobsQuery->get();
 
         if ($jobs->isEmpty()) {
             AutoApplyLog::create([
@@ -68,27 +79,23 @@ class AutoApplyService
         foreach ($jobs as $job) {
             try {
                 $coverLetter = $this->aiService->generateCoverLetter($job, $user, $preferences->cover_letter_template);
-
                 Application::create([
-                    'job_id' => $job->id ?? null,
+                    'job_id' => $job->id,
                     'user_id' => $user->id,
                     'resume_path' => $profile->resume_path,
                     'cover_letter' => $coverLetter,
                     'status' => 'pending'
                 ]);
-
                 AutoApplyLog::create([
                     'user_id' => $user->id,
-                    'job_id' => $job->id ?? null,
+                    'job_id' => $job->id,
                     'status' => 'success'
                 ]);
-
                 $appliedJobs[] = $job->id;
-
             } catch (Exception $e) {
                 AutoApplyLog::create([
                     'user_id' => $user->id,
-                    'job_id' => $job->id ?? null,
+                    'job_id' => $job->id,
                     'status' => 'failed',
                     'reason' => $e->getMessage()
                 ]);
