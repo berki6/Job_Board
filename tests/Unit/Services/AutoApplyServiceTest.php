@@ -5,7 +5,6 @@ use App\Services\AIServices;
 use App\Models\User;
 use App\Models\Job;
 use App\Models\Profile;
-use App\Models\AutoApplyPreference;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
 use Illuminate\Support\Facades\DB;

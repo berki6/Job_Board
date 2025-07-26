@@ -82,16 +82,29 @@ function createJob($attributes = [])
         'status' => 'open'
     ], $attributes));
 }
+// Helper function to create an application
+function createApplication($user, $job, $attributes = [])
+{
+    return \App\Models\Application::factory()->create(array_merge([
+        'user_id' => $user->id,
+        'job_id' => $job->id,
+        'cover_letter' => 'This is a cover letter',
+        'status' => 'pending'
+    ], $attributes));
+}
 
-// Helper function to create auto apply preferences
 function createAutoApplyPreferences($user, $attributes = [])
 {
-    return $user->autoApplyPreference()->create(array_merge([
+    return App\Models\AutoApplyPreference::factory()->create(array_merge([
+        'user_id' => $user->id,
         'auto_apply_enabled' => true,
         'job_titles' => ['Developer', 'Engineer'],
         'locations' => ['Remote', 'New York'],
+        'job_types' => ["Full-time", "Part-time"],
         'salary_min' => 50000,
-        'salary_max' => 100000,
-        'cover_letter_template' => 'Custom template'
-    ], $attributes));
+        'salary_max' => 10000,
+        'cover_letter_template' => 'Custom template',
+    ], array_map(function ($value, $key) {
+        return in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value) ? json_encode($value) : $value;
+    }, $attributes, array_keys($attributes))));
 }
