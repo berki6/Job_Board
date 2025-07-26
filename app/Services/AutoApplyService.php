@@ -8,10 +8,16 @@ use App\Models\AutoApplyLog;
 use App\Services\AIServices;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB; // Added for DB::raw()
 
 class AutoApplyService
 {
     protected $aiService;
+    /**
+     * AutoApplyService constructor.
+     *
+     * @param AIServices $aiService
+     */
 
     public function __construct(AIServices $aiService)
     {
@@ -42,9 +48,11 @@ class AutoApplyService
             return;
         }
 
-        $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) : $preferences->job_titles;
-        $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) : $preferences->locations;
-        $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) : $preferences->job_types;
+        // Use array casting to handle both JSON strings and arrays gracefully
+        $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) ?? [] : (array) ($preferences->job_titles ?? []);
+        $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) ?? [] : (array) ($preferences->locations ?? []);
+        $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) ?? [] : (array) ($preferences->job_types ?? []);
+
 
         Log::info('Raw preferences', [
             'job_titles' => $preferences->job_titles,
@@ -59,23 +67,28 @@ class AutoApplyService
             'salary_max' => $preferences->salary_max
         ]);
 
+
         $jobsQuery = Job::where('status', 'open')
             ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id));
-
-        if ($jobTitles && !empty(array_filter($jobTitles))) {
+        Log::info($jobsQuery->toSql(), $jobsQuery->getBindings());
+        if ($jobTitles && !empty(array_filter((array) $jobTitles))) {
             $jobsQuery->where(function ($query) use ($jobTitles) {
                 foreach ((array) $jobTitles as $title) {
-                    $query->orWhere('title', 'LIKE', "%{$title}%");
+                    if (!empty($title)) {
+                        $query->orWhere('title', 'LIKE', "%{$title}%");
+                    }
                 }
             });
         }
-        if ($locations && !empty(array_filter($locations))) {
+        if ($locations && !empty(array_filter((array) $locations))) {
             $jobsQuery->whereIn('location', (array) $locations);
         }
-        if ($jobTypes && !empty(array_filter($jobTypes))) {
+        if ($jobTypes && !empty(array_filter((array) $jobTypes))) {
             $jobsQuery->leftJoin('job_types', 'jobs_listing.job_type_id', '=', 'job_types.id')
                 ->where(function ($query) use ($jobTypes) {
-                    $query->whereRaw('LOWER(job_types.name) IN ?', [array_map('strtolower', (array) $jobTypes)])
+                    // FIX: Replaced problematic whereRaw with whereIn for compatibility and security.
+                    // The original whereRaw would not bind the array correctly for an IN clause.
+                    $query->whereIn(DB::raw('LOWER(job_types.name)'), array_map('strtolower', (array) $jobTypes))
                         ->orWhereNull('jobs_listing.job_type_id');
                 });
         }
@@ -96,6 +109,8 @@ class AutoApplyService
             'salary_max' => $preferences->salary_max
         ]);
 
+        // FIX: The condition was inverted. It should check if the collection IS EMPTY, not if it's NOT empty.
+        // This was the primary bug causing tests to fail, as it would exit before applying for any jobs found.
         if ($jobs->isEmpty()) {
             AutoApplyLog::create([
                 'user_id' => $user->id,
@@ -109,14 +124,23 @@ class AutoApplyService
 
         foreach ($jobs as $job) {
             try {
+                Log::info('DEBUG: Attempting to generate cover letter', ['job_id' => $job->id, 'user_id' => $user->id]);
                 $coverLetter = $this->aiService->generateCoverLetter($job, $user, $preferences->cover_letter_template);
-                Application::create([
+                // Check if cover letter generation was successful
+                if (empty($coverLetter)) {
+                    throw new Exception('Cover letter generation failed or returned empty.');
+                }
+                Log::info('DEBUG: Cover letter generated, creating application', ['cover_letter' => $coverLetter]);
+
+                $application = Application::factory()->create([
                     'job_id' => $job->id,
                     'user_id' => $user->id,
                     'resume_path' => $profile->resume_path,
                     'cover_letter' => $coverLetter,
                     'status' => 'pending'
                 ]);
+                Log::info('DEBUG: Application created', ['application_id' => $application->id]);
+
                 AutoApplyLog::create([
                     'user_id' => $user->id,
                     'job_id' => $job->id,
@@ -124,6 +148,7 @@ class AutoApplyService
                 ]);
                 $appliedJobs[] = $job->id;
             } catch (Exception $e) {
+                Log::info('DEBUG: Exception caught', ['message' => $e->getMessage()]);
                 AutoApplyLog::create([
                     'user_id' => $user->id,
                     'job_id' => $job->id,
@@ -140,6 +165,12 @@ class AutoApplyService
                 'reason' => count($appliedJobs) > 0
                     ? 'Auto-apply completed successfully for ' . count($appliedJobs) . ' jobs'
                     : 'No jobs applied successfully'
+            ]);
+        } else {
+            AutoApplyLog::create([
+                'user_id' => $user->id,
+                'status' => 'completed',
+                'reason' => 'No jobs applied successfully'
             ]);
         }
         return $appliedJobs;

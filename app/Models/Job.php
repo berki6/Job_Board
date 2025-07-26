@@ -42,7 +42,7 @@ class Job extends Model
      */
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     /**
@@ -50,7 +50,7 @@ class Job extends Model
      */
     public function applications()
     {
-        return $this->hasMany(Application::class);
+        return $this->hasMany(Application::class, 'job_id');
     }
 
     /**
@@ -58,9 +58,9 @@ class Job extends Model
      */
     public function skills()
     {
-        return $this->belongsToMany(Skill::class, 'jobs_skills');
+        return $this->belongsToMany(Skill::class, 'jobs_skills', 'job_id', 'skill_id');
     }
-    
+
     /**
      * Get the job type for this job.
      */
