@@ -97,13 +97,13 @@ function createAutoApplyPreferences($user, $attributes = [])
 {
     return App\Models\AutoApplyPreference::factory()->create(array_merge([
         'user_id' => $user->id,
-        'auto_apply_enabled' => true,
-        'job_titles' => ['Developer', 'Engineer'],
-        'locations' => ['Remote', 'New York'],
-        'job_types' => ["Full-time", "Part-time"],
-        'salary_min' => 50000,
-        'salary_max' => 10000,
-        'cover_letter_template' => 'Custom template',
+        'auto_apply_enabled' => false,
+        'job_titles' => null,
+        'locations' => null,
+        'job_types' => null, // Optional; remove if not needed
+        'salary_min' => null,
+        'salary_max' => null,
+        'cover_letter_template' => null,
     ], array_map(function ($value, $key) {
         return in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value) ? json_encode($value) : $value;
     }, $attributes, array_keys($attributes))));
