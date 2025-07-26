@@ -1,11 +1,28 @@
 <?php
 
-use App\Jobs\AutoApplyAgentJob;
-use Illuminate\Console\Scheduling\Schedule;
+namespace App\Console;
 
-class Kernel {
-protected function schedule(Schedule $schedule)
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
 {
-    $schedule->job(new AutoApplyAgentJob)->everyFifteenMinutes();
-}
+    /**
+     * Define the application's command schedule.
+     */
+    protected function schedule(Schedule $schedule)
+    {
+        // ✅ Schedule AI Auto-Apply Agent every 15 minutes
+        $schedule->job(new \App\Jobs\AutoApplyAgentJob)->everyFifteenMinutes();
+    }
+
+    /**
+     * Register the commands for the application.
+     */
+    protected function commands()
+    {
+        $this->load(__DIR__ . '/Commands');
+
+        require base_path('routes/console.php');
+    }
 }

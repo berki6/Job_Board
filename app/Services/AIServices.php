@@ -2,41 +2,36 @@
 
 namespace App\Services;
 
-use google_gemini_php;
+use Gemini\Laravel\Facades\Gemini;
 
 class AIServices
 {
-    protected $client;
-
-    public function __construct()
-    {
-        $this->client = new Client(['apiKey' => env('GEMINI_API_KEY')]);
-    }
-
     public function generateCoverLetter($job, $user, $customTemplate = null)
     {
         $prompt = $customTemplate ?? $this->defaultPrompt($job, $user);
 
-        $response = $this->client->models->generateContent([
-            'model' => 'gemini-pro',
-            'contents' => [['parts' => [['text' => $prompt]]]]
-        ]);
+        $response = Gemini::geminiPro()->generateContent($prompt);
 
-        return $response['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        return $response->text();
     }
 
     protected function defaultPrompt($job, $user)
     {
-        return "Write a professional cover letter for this job:
+        $skills = $user->profile->skills ?? 'Not specified';
+        $bio = $user->profile->bio ?? 'Not specified';
 
-                Job Title: {{$job->title}}
-                Description: {{$job->description}}
+        return <<<EOT
+                        Write a professional cover letter for this job:
 
-                Candidate Info:
-                Name: {{$user->name}}
-                Skills: {{$user->profile->skills ?? 'Not specified'}}
-                Experience: {{$user->profile->bio ?? 'Not specified'}}
-                Make it concise, polite, and tailored for the job.
-                ";
+                        Job Title: {$job->title}
+                        Description: {$job->description}
+
+                        Candidate Info:
+                        Name: {$user->name}
+                        Skills: {$skills}
+                        Experience: {$bio}
+
+                        Make it concise, polite, and tailored for the job.
+                    EOT;
     }
 }
