@@ -13,9 +13,9 @@ return new class extends Migration {
             $table->boolean('auto_apply_enabled')->default(false);
             $table->json('job_titles')->nullable();
             $table->json('locations')->nullable();
-            $table->unsignedInteger('salary_min')->nullable();
-            $table->unsignedInteger('salary_max')->nullable();
             $table->json('job_types')->nullable();
+            $table->decimal('salary_min', 10, 2)->nullable();
+            $table->decimal('salary_max', 10, 2)->nullable();     
             $table->text('cover_letter_template')->nullable();
             $table->timestamps();
         });

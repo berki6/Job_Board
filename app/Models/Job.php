@@ -60,4 +60,12 @@ class Job extends Model
     {
         return $this->belongsToMany(Skill::class, 'jobs_skills');
     }
+    
+    /**
+     * Get the job type for this job.
+     */
+    public function jobType()
+    {
+        return $this->belongsTo(JobType::class, 'job_type_id');
+    }
 }

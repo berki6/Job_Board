@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('job_types', function (Blueprint $table) {
             $table->id();
-            $table->enum('name', ['Full-time', 'Part-time', 'Remote'])->index();; // e.g., Full-time
+            // $table->enum('name', ['Full-time', 'Part-time', 'Remote'])->index(); // e.g., Full-time
+            $table->string('name')->unique();
             $table->timestamps();
         });
 

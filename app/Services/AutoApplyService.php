@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\AutoApplyLog;
 use App\Services\AIServices;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AutoApplyService
 {
@@ -20,11 +21,13 @@ class AutoApplyService
     public function processForUser($user)
     {
         if (!$user->subscribed('premium')) {
+            Log::info('User not premium', ['user_id' => $user->id]);
             return;
         }
 
         $preferences = $user->autoApplyPreference;
         if (!$preferences || !$preferences->auto_apply_enabled) {
+            Log::info('No preferences or auto apply disabled', ['user_id' => $user->id]);
             return;
         }
 
@@ -35,10 +38,10 @@ class AutoApplyService
                 'status' => 'failed',
                 'reason' => 'User profile or resume not found',
             ]);
+            Log::info('No profile or resume', ['user_id' => $user->id]);
             return;
         }
 
-        // Decode JSON fields
         $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) : $preferences->job_titles;
         $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) : $preferences->locations;
         $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) : $preferences->job_types;
@@ -46,7 +49,6 @@ class AutoApplyService
         $jobsQuery = Job::where('status', 'open')
             ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id));
 
-        // Apply filters only if preferences are set and non-empty
         if ($jobTitles && !empty(array_filter($jobTitles))) {
             $jobsQuery->whereIn('title', (array) $jobTitles);
         }
@@ -54,16 +56,25 @@ class AutoApplyService
             $jobsQuery->whereIn('location', (array) $locations);
         }
         if ($jobTypes && !empty(array_filter($jobTypes))) {
-            $jobsQuery->whereIn('type', (array) $jobTypes); // Assumes 'type' column in jobs table
+            $jobsQuery->leftJoin('job_types', 'jobs_listing.job_type_id', '=', 'job_types.id')
+                ->whereIn('job_types.name', (array) $jobTypes);
         }
         if ($preferences->salary_min) {
-            $jobsQuery->where('salary', '>=', $preferences->salary_min);
+            $jobsQuery->where('salary', '>=', (float) $preferences->salary_min);
         }
         if ($preferences->salary_max) {
-            $jobsQuery->where('salary', '<=', $preferences->salary_max);
+            $jobsQuery->where('salary', '<=', (float) $preferences->salary_max);
         }
 
         $jobs = $jobsQuery->get();
+        Log::info('Jobs found', ['count' => $jobs->count(), 'jobs' => $jobs->toArray()]);
+        Log::info('Preferences', [
+            'job_titles' => $jobTitles,
+            'locations' => $locations,
+            'job_types' => $jobTypes,
+            'salary_min' => $preferences->salary_min,
+            'salary_max' => $preferences->salary_max
+        ]);
 
         if ($jobs->isEmpty()) {
             AutoApplyLog::create([
