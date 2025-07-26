@@ -11,8 +11,14 @@ use App\Models\AutoApplyLog;
 
 describe('AutoApplyService', function () {
     beforeEach(function () {
+        // Initialize Mockery
         $this->mockAIService = Mockery::mock(AIServices::class);
         $this->autoApplyService = new AutoApplyService($this->mockAIService);
+    });
+
+    afterEach(function () {
+        // Close Mockery to avoid memory leaks
+        \Mockery::close();
     });
 
     it('skips non-premium users', function () {

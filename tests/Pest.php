@@ -46,7 +46,7 @@ function createPremiumUser($attributes = [])
 {
     $user = \App\Models\User::factory()->create($attributes);
     $user->createAsStripeCustomer();
-    $user->newSubscription('premium', 'price_test')->create('pm_card_visa');
+    $user->newSubscription('premium', 'price_1Rp1zVFIcfi7ZhWBuRQYYZn0')->create('pm_card_visa');
     return $user;
 }
 
