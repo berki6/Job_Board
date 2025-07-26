@@ -17,7 +17,7 @@ class SubscriptionController extends Controller
     {
         $request->validate(['paymentMethodId' => 'required|string']);
 
-        $request->user()->newSubscription('premium', 'price_xxx')
+        $request->user()->newSubscription('premium', 'price_1Rp1zVFIcfi7ZhWBIcwGdyTV')
             ->create($request->paymentMethodId);
 
         return redirect()->route('auto.apply')->with('success', 'You are now subscribed to premium!');
