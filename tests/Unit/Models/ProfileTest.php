@@ -6,7 +6,7 @@ describe('Profile Model', function () {
         $profile = \App\Models\Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Experienced software developer.',
-            'skills' => ['PHP', 'JavaScript']
+            'skills' => ['PHP', 'JavaScript'],
         ]);
 
         expect($profile->bio)->toBe('Experienced software developer.')
@@ -42,4 +42,3 @@ describe('Profile Model', function () {
             ->and($profile->skills)->toContain('Laravel', 'Vue.js');
     });
 });
-

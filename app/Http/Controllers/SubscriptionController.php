@@ -11,7 +11,7 @@ class SubscriptionController extends Controller
     public function show(Request $request)
     {
         return view('subscribe', [
-            'intent' => $request->user()->createSetupIntent()
+            'intent' => $request->user()->createSetupIntent(),
         ]);
     }
 
@@ -30,14 +30,15 @@ class SubscriptionController extends Controller
             return redirect()->route('auto.apply')->with('success', 'You are now subscribed to premium!');
         } catch (CardException $e) {
             // Card was declined or payment failed
-            Log::error('Subscription creation failed: ' . $e->getMessage());
+            Log::error('Subscription creation failed: '.$e->getMessage());
+
             return back()->withErrors([
                 'payment' => 'Your card was declined. Please use a different payment method.',
             ]);
         } catch (\Exception $e) {
             // General exception handling
             // You may want to log this exception
-            Log::error('Subscription creation failed: ' . $e->getMessage());
+            Log::error('Subscription creation failed: '.$e->getMessage());
 
             return back()->withErrors([
                 'payment' => 'An error occurred while processing your subscription. Please try again.',
@@ -45,4 +46,3 @@ class SubscriptionController extends Controller
         }
     }
 }
-

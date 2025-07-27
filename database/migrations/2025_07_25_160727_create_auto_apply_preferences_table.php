@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('auto_apply_preferences', function (Blueprint $table) {
@@ -15,7 +16,7 @@ return new class extends Migration {
             $table->json('locations')->nullable();
             $table->json('job_types')->nullable();
             $table->decimal('salary_min', 10, 2)->nullable();
-            $table->decimal('salary_max', 10, 2)->nullable();     
+            $table->decimal('salary_max', 10, 2)->nullable();
             $table->text('cover_letter_template')->nullable();
             $table->timestamps();
         });

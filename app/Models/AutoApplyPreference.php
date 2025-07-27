@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AutoApplyPreference extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
         'auto_apply_enabled',
@@ -16,7 +17,7 @@ class AutoApplyPreference extends Model
         'salary_min',
         'salary_max',
         'job_types',
-        'cover_letter_template'
+        'cover_letter_template',
     ];
 
     protected $casts = [

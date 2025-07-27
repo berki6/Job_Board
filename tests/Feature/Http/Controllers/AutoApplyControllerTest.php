@@ -1,30 +1,28 @@
 <?php
 
 use App\Models\User;
-use App\Models\AutoApplyPreference;
-use App\Models\Profile;
 
 describe('AutoApplyController', function () {
     it('requires authentication to access auto apply page', function () {
         $response = $this->get(route('auto.apply'));
-        
+
         $response->assertRedirect(route('login'));
     });
 
     it('requires premium middleware to access auto apply page', function () {
         $user = User::factory()->create();
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply'));
-        
+
         $response->assertRedirect(route('subscribe'))
             ->assertSessionHas('error', 'Upgrade to premium to use this feature.');
     });
 
     it('shows auto apply page for premium users', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply'));
-        
+
         $response->assertStatus(200)
             ->assertViewIs('auto-apply')
             ->assertViewHas('preferences');
@@ -32,11 +30,11 @@ describe('AutoApplyController', function () {
 
     it('shows default preferences for new users', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply'));
-        
+
         $response->assertStatus(200);
-        
+
         $preferences = $response->viewData('preferences');
         expect($preferences->auto_apply_enabled)->toBeFalse()
             ->and($preferences->job_titles)->toBe([])
@@ -48,13 +46,13 @@ describe('AutoApplyController', function () {
         $preferences = createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
-            'locations' => ['Remote']
+            'locations' => ['Remote'],
         ]);
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply'));
-        
+
         $response->assertStatus(200);
-        
+
         $viewPreferences = $response->viewData('preferences');
         expect($viewPreferences->auto_apply_enabled)->toBeTrue()
             ->and($viewPreferences->job_titles)->toBe(['Developer'])
@@ -63,18 +61,18 @@ describe('AutoApplyController', function () {
 
     it('can update auto apply preferences', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'job_titles' => '["Senior Developer", "Lead Engineer"]',
             'locations' => '["Remote", "San Francisco"]',
             'salary_min' => 80000,
             'salary_max' => 120000,
-            'cover_letter_template' => 'Custom template'
+            'cover_letter_template' => 'Custom template',
         ]);
-        
+
         $response->assertRedirect()
             ->assertSessionHas('success', 'Preferences updated successfully.');
-            
+
         $preferences = $user->fresh()->autoApplyPreference;
         expect($preferences->job_titles)->toBe(['Senior Developer', 'Lead Engineer'])
             ->and($preferences->locations)->toBe(['Remote', 'San Francisco'])
@@ -85,23 +83,23 @@ describe('AutoApplyController', function () {
 
     it('validates update request data', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'salary_min' => 'invalid',
-            'salary_max' => 'invalid'
+            'salary_max' => 'invalid',
         ]);
-        
+
         $response->assertSessionHasErrors(['salary_min', 'salary_max']);
     });
 
     it('can toggle auto apply on', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply.toggle'));
-        
+
         $response->assertRedirect()
             ->assertSessionHas('success', 'Auto-Apply status updated.');
-            
+
         $preferences = $user->fresh()->autoApplyPreference;
         expect($preferences->auto_apply_enabled)->toBeTrue();
     });
@@ -109,25 +107,25 @@ describe('AutoApplyController', function () {
     it('can toggle auto apply off', function () {
         $user = createPremiumUser();
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply.toggle'));
-        
+
         $response->assertRedirect()
             ->assertSessionHas('success', 'Auto-Apply status updated.');
-            
+
         $preferences = $user->fresh()->autoApplyPreference;
         expect($preferences->auto_apply_enabled)->toBeFalse();
     });
 
     it('creates preferences when toggling for new users', function () {
         $user = createPremiumUser();
-        
+
         expect($user->autoApplyPreference)->toBeNull();
-        
+
         $response = $this->actingAs($user)->get(route('auto.apply.toggle'));
-        
+
         $response->assertRedirect();
-        
+
         $preferences = $user->fresh()->autoApplyPreference;
         expect($preferences)->not->toBeNull()
             ->and($preferences->auto_apply_enabled)->toBeTrue();
@@ -135,12 +133,12 @@ describe('AutoApplyController', function () {
 
     it('handles JSON parsing errors gracefully', function () {
         $user = createPremiumUser();
-        
+
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'job_titles' => 'invalid json',
-            'locations' => 'invalid json'
+            'locations' => 'invalid json',
         ]);
-        
+
         // Should not throw an error, should handle gracefully
         $response->assertRedirect();
     });

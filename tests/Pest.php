@@ -47,6 +47,7 @@ function createPremiumUser($attributes = [])
     $user = \App\Models\User::factory()->create($attributes);
     $user->createAsStripeCustomer();
     $user->newSubscription('premium', 'price_1Rp1zVFIcfi7ZhWBuRQYYZn0')->create('pm_card_visa');
+
     return $user;
 }
 
@@ -64,8 +65,9 @@ function createUserWithProfile($userAttributes = [], $profileAttributes = [])
         'bio' => 'Test bio',
         'phone' => '+1234567890',
         'resume_path' => 'resumes/test.pdf',
-        'skills' => ['PHP', 'Laravel', 'JavaScript']
+        'skills' => ['PHP', 'Laravel', 'JavaScript'],
     ], $profileAttributes));
+
     return $user;
 }
 
@@ -73,13 +75,14 @@ function createUserWithProfile($userAttributes = [], $profileAttributes = [])
 function createJob($attributes = [])
 {
     $company = createUser(['name' => 'Test Company']);
+
     return \App\Models\Job::factory()->create(array_merge([
         'company_id' => $company->id,
         'title' => 'Software Developer',
         'description' => 'Great job opportunity',
         'location' => 'Remote',
         'salary' => 75000,
-        'status' => 'open'
+        'status' => 'open',
     ], $attributes));
 }
 // Helper function to create an application
@@ -89,7 +92,7 @@ function createApplication($user, $job, $attributes = [])
         'user_id' => $user->id,
         'job_id' => $job->id,
         'cover_letter' => 'This is a cover letter',
-        'status' => 'pending'
+        'status' => 'pending',
     ], $attributes));
 }
 

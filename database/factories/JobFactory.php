@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Job;
-use App\Models\User;
 use App\Models\Category;
+use App\Models\Job;
 use App\Models\JobType;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class JobFactory extends Factory
@@ -15,6 +15,7 @@ class JobFactory extends Factory
     public function definition(): array
     {
         $jobType = JobType::firstOrCreate(['name' => 'Full-time']);
+
         return [
             'company_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,

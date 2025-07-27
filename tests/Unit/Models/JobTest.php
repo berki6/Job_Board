@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\Application;
+use App\Models\Category;
 use App\Models\Job;
 use App\Models\User;
-use App\Models\Category;
-use App\Models\Application;
 
 describe('Job Model', function () {
     it('can create a job', function () {
@@ -24,7 +24,7 @@ describe('Job Model', function () {
     });
 
     it('uses the correct table name', function () {
-        $job = new Job();
+        $job = new Job;
 
         expect($job->getTable())->toBe('jobs_listing');
     });

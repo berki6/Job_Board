@@ -16,7 +16,7 @@ class ApplicationFactory extends Factory
         return [
             'job_id' => Job::factory(),
             'user_id' => User::factory(),
-            'resume_path' => 'resumes/' . $this->faker->uuid() . '.pdf',
+            'resume_path' => 'resumes/'.$this->faker->uuid().'.pdf',
             'cover_letter' => $this->faker->paragraph(4),
             'status' => 'pending',
         ];

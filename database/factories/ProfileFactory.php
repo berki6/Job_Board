@@ -20,8 +20,8 @@ class ProfileFactory extends Factory
             'logo_path' => null,
             'resume_path' => $this->faker->optional()->filePath(),
             'skills' => $this->faker->randomElements([
-                'PHP', 'JavaScript', 'Python', 'Java', 'C++', 'React', 'Vue.js', 
-                'Angular', 'Laravel', 'Django', 'Node.js', 'Docker', 'AWS'
+                'PHP', 'JavaScript', 'Python', 'Java', 'C++', 'React', 'Vue.js',
+                'Angular', 'Laravel', 'Django', 'Node.js', 'Docker', 'AWS',
             ], $this->faker->numberBetween(3, 8)),
         ];
     }
@@ -29,7 +29,7 @@ class ProfileFactory extends Factory
     public function withResume(): static
     {
         return $this->state(fn (array $attributes) => [
-            'resume_path' => 'resumes/' . $this->faker->uuid() . '.pdf',
+            'resume_path' => 'resumes/'.$this->faker->uuid().'.pdf',
         ]);
     }
 

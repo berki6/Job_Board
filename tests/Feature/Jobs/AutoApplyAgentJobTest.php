@@ -1,14 +1,13 @@
 <?php
 
 use App\Jobs\AutoApplyAgentJob;
-use App\Models\User;
-use App\Models\Job;
-use App\Models\Profile;
-use App\Models\AutoApplyPreference;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
-use App\Services\AutoApplyService;
+use App\Models\Job;
+use App\Models\Profile;
+use App\Models\User;
 use App\Services\AIServices;
+use App\Services\AutoApplyService;
 
 describe('AutoApplyAgentJob', function () {
     it('processes premium users with auto apply enabled', function () {
@@ -16,19 +15,19 @@ describe('AutoApplyAgentJob', function () {
         $user = createPremiumUser();
         Profile::factory()->create([
             'user_id' => $user->id,
-            'resume_path' => 'resumes/test.pdf'
+            'resume_path' => 'resumes/test.pdf',
         ]);
         createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
-            'locations' => ['Remote']
+            'locations' => ['Remote'],
         ]);
 
         // Create matching job
         $job = Job::factory()->create([
             'title' => 'Developer',
             'location' => 'Remote',
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         // Mock AIServices so generateCoverLetter returns a dummy cover letter
@@ -38,13 +37,13 @@ describe('AutoApplyAgentJob', function () {
             ->andReturn('Generated cover letter');
 
         // Bind mocked AI service in container to be injected where needed
-        $this->app->bind(AIServices::class, fn() => $mockAI);
+        $this->app->bind(AIServices::class, fn () => $mockAI);
 
         // Resolve AutoApplyService manually with mocked AI service injected
         $autoApplyService = $this->app->make(AutoApplyService::class);
 
         // Execute the job
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle($autoApplyService);
 
         // Assert application was created
@@ -61,7 +60,7 @@ describe('AutoApplyAgentJob', function () {
         Job::factory()->create(['status' => 'open']);
 
         // Execute the job
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
 
         // Assert no applications were created
@@ -76,7 +75,7 @@ describe('AutoApplyAgentJob', function () {
 
         Job::factory()->create(['status' => 'open']);
 
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
 
         expect(Application::count())->toBe(0);
@@ -89,7 +88,7 @@ describe('AutoApplyAgentJob', function () {
 
         Job::factory()->create(['status' => 'open']);
 
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
 
         expect(Application::count())->toBe(0);
@@ -115,7 +114,7 @@ describe('AutoApplyAgentJob', function () {
                 ->andReturn('Generated cover letter');
         });
 
-        $autoApplyJob = new AutoApplyAgentJob();
+        $autoApplyJob = new AutoApplyAgentJob;
         $autoApplyJob->handle(app(AutoApplyService::class));
 
         // Assert both users applied
@@ -130,7 +129,7 @@ describe('AutoApplyAgentJob', function () {
 
         Job::factory()->create(['status' => 'open']);
 
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
 
         // Should create failure log
@@ -156,12 +155,12 @@ describe('AutoApplyAgentJob', function () {
                 }));
         });
 
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
     });
 
     it('implements ShouldQueue interface', function () {
-        $job = new AutoApplyAgentJob();
+        $job = new AutoApplyAgentJob;
 
         expect($job)->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
     });

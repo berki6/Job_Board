@@ -1,14 +1,14 @@
 <?php
 
-use App\Services\AutoApplyService;
-use App\Services\AIServices;
-use App\Models\User;
-use App\Models\Job;
-use App\Models\Profile;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
 use App\Models\Category;
+use App\Models\Job;
 use App\Models\JobType;
+use App\Models\Profile;
+use App\Models\User;
+use App\Services\AIServices;
+use App\Services\AutoApplyService;
 use Illuminate\Support\Facades\DB;
 
 describe('AutoApplyService', function () {
@@ -21,7 +21,7 @@ describe('AutoApplyService', function () {
         JobType::firstOrCreate(['name' => 'Contract']);
 
         // Verify seeding
-        if (!JobType::where('name', 'Full-time')->exists()) {
+        if (! JobType::where('name', 'Full-time')->exists()) {
             throw new Exception('Failed to seed Full-time JobType');
         }
 
@@ -66,14 +66,14 @@ describe('AutoApplyService', function () {
         $user = createPremiumUser();
         Profile::factory()->create([
             'user_id' => $user->id,
-            'resume_path' => 'resumes/test.pdf'
+            'resume_path' => 'resumes/test.pdf',
         ]);
 
         createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
             'locations' => null,
-            'job_types' => null
+            'job_types' => null,
         ]);
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
@@ -85,7 +85,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->mockAIService
@@ -93,7 +93,6 @@ describe('AutoApplyService', function () {
             ->once()
             ->with(Mockery::type(App\Models\Job::class), Mockery::type(App\Models\User::class), Mockery::any())
             ->andReturn('Generated cover letter');
-
 
         $this->autoApplyService->processForUser($user);
 
@@ -115,7 +114,7 @@ describe('AutoApplyService', function () {
             'auto_apply_enabled' => true,
             'job_titles' => ['Frontend Developer'],
             'job_types' => null,
-            'locations' => null
+            'locations' => null,
         ]);
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
@@ -127,7 +126,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
             'company_id' => User::factory()->create()->id,
@@ -137,7 +136,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->mockAIService
@@ -163,7 +162,7 @@ describe('AutoApplyService', function () {
             'job_types' => null,
             'locations' => null,
             'salary_min' => 60000,
-            'salary_max' => 90000
+            'salary_max' => 90000,
         ]);
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
@@ -175,7 +174,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 40000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
         Job::factory()->create([
             'company_id' => User::factory()->create()->id,
@@ -185,7 +184,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 100000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
             'company_id' => User::factory()->create()->id,
@@ -195,7 +194,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->mockAIService
@@ -219,7 +218,7 @@ describe('AutoApplyService', function () {
             'auto_apply_enabled' => true,
             'job_titles' => null,
             'job_types' => null,
-            'locations' => ['Remote']
+            'locations' => ['Remote'],
         ]);
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
@@ -231,7 +230,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'New York',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
             'company_id' => User::factory()->create()->id,
@@ -241,7 +240,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->mockAIService
@@ -268,7 +267,7 @@ describe('AutoApplyService', function () {
             'auto_apply_enabled' => true,
             'job_titles' => null,
             'locations' => null,
-            'job_types' => null
+            'job_types' => null,
         ]);
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
@@ -280,14 +279,14 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         Application::create([
             'job_id' => $job->id,
             'user_id' => $user->id,
             'resume_path' => 'resume.pdf',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $this->autoApplyService->processForUser($user);
@@ -302,7 +301,7 @@ describe('AutoApplyService', function () {
             'auto_apply_enabled' => true,
             'job_titles' => null,
             'locations' => null,
-            'job_types' => null
+            'job_types' => null,
         ]);
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
@@ -313,7 +312,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->autoApplyService->processForUser($user);
@@ -336,7 +335,7 @@ describe('AutoApplyService', function () {
             'auto_apply_enabled' => true,
             'job_titles' => null,
             'locations' => null,
-            'job_types' => null
+            'job_types' => null,
         ]);
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
@@ -347,7 +346,7 @@ describe('AutoApplyService', function () {
             'description' => 'Job description',
             'location' => 'Remote',
             'salary' => 75000.00,
-            'status' => 'open'
+            'status' => 'open',
         ]);
 
         $this->mockAIService

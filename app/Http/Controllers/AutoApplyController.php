@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\AutoApplyPreference;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class AutoApplyController extends Controller
@@ -22,7 +22,7 @@ class AutoApplyController extends Controller
             'salary_max' => null,
             'cover_letter_template' => null,
         ]);
-        Log::info('AutoApply preferences debug info',[
+        Log::info('AutoApply preferences debug info', [
             'job_titles_raw' => $preferences->getRawOriginal('job_titles'),
             'job_titles_casted' => $preferences->job_titles,
             'locations_raw' => $preferences->getRawOriginal('locations'),
@@ -52,6 +52,7 @@ class AutoApplyController extends Controller
             'locations_raw' => $preferences->getRawOriginal('locations'),
             'locations_casted' => $preferences->locations,
         ]);
+
         return view('auto-apply-preferences', compact('preferences'));
     }
 
@@ -79,7 +80,7 @@ class AutoApplyController extends Controller
             'salary_max' => $request->salary_max,
             'cover_letter_template' => $request->cover_letter_template,
         ]);
-        Log::info('AutoApply preferences debug info',[
+        Log::info('AutoApply preferences debug info', [
             'job_titles_raw' => $preferences->getRawOriginal('job_titles'),
             'job_titles_casted' => $preferences->job_titles,
             'locations_raw' => $preferences->getRawOriginal('locations'),
@@ -98,7 +99,7 @@ class AutoApplyController extends Controller
         $user = $request->user();
         $preferences = $user->autoApplyPreference;
 
-        if (!$preferences) {
+        if (! $preferences) {
             // Create new preferences with auto-apply enabled
             $preferences = new AutoApplyPreference([
                 'user_id' => $user->id,
@@ -108,7 +109,7 @@ class AutoApplyController extends Controller
             ]);
             $preferences->save();
         } else {
-            $preferences->auto_apply_enabled = !$preferences->auto_apply_enabled;
+            $preferences->auto_apply_enabled = ! $preferences->auto_apply_enabled;
             $preferences->save();
         }
 

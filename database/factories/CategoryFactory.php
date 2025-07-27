@@ -14,7 +14,7 @@ class CategoryFactory extends Factory
     {
         $name = $this->faker->unique()->randomElement([
             'Technology', 'Marketing', 'Sales', 'Design', 'Customer Support',
-            'Human Resources', 'Finance', 'Operations', 'Product', 'Engineering'
+            'Human Resources', 'Finance', 'Operations', 'Product', 'Engineering',
         ]);
 
         return [

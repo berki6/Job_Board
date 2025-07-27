@@ -2,23 +2,20 @@
 
 namespace App\Services;
 
-use App\Models\Job;
 use App\Models\Application;
 use App\Models\AutoApplyLog;
-use App\Services\AIServices;
+use App\Models\Job;
 use Exception;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB; // Added for DB::raw()
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // Added for DB::raw()
 
 class AutoApplyService
 {
     protected $aiService;
+
     /**
      * AutoApplyService constructor.
-     *
-     * @param AIServices $aiService
      */
-
     public function __construct(AIServices $aiService)
     {
         $this->aiService = $aiService;
@@ -28,25 +25,28 @@ class AutoApplyService
     {
         Log::info('Processing auto-apply for user', ['user_id' => $user->id]);
 
-        if (!$user->subscribed('premium')) {
+        if (! $user->subscribed('premium')) {
             Log::info('User not premium', ['user_id' => $user->id]);
+
             return;
         }
 
         $preferences = $user->autoApplyPreference;
-        if (!$preferences || !$preferences->auto_apply_enabled) {
+        if (! $preferences || ! $preferences->auto_apply_enabled) {
             Log::info('No preferences or auto apply disabled', ['user_id' => $user->id]);
+
             return;
         }
 
         $profile = $user->profile;
-        if (!$profile || !$profile->resume_path) {
+        if (! $profile || ! $profile->resume_path) {
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'failed',
                 'reason' => 'User profile or resume not found',
             ]);
             Log::info('No profile or resume, skipping user', ['user_id' => $user->id]);
+
             return;
         }
 
@@ -56,7 +56,6 @@ class AutoApplyService
         $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) ?? [] : (array) ($preferences->job_titles ?? []);
         $locations = is_string($preferences->locations) ? json_decode($preferences->locations, true) ?? [] : (array) ($preferences->locations ?? []);
         $jobTypes = is_string($preferences->job_types) ? json_decode($preferences->job_types, true) ?? [] : (array) ($preferences->job_types ?? []);
-
 
         Log::info('Raw preferences', [
             'job_titles' => $preferences->job_titles,
@@ -68,26 +67,25 @@ class AutoApplyService
             'locations' => $locations,
             'job_types' => $jobTypes,
             'salary_min' => $preferences->salary_min,
-            'salary_max' => $preferences->salary_max
+            'salary_max' => $preferences->salary_max,
         ]);
 
-
         $jobsQuery = Job::where('status', 'open')
-            ->whereDoesntHave('applications', fn($q) => $q->where('user_id', $user->id));
+            ->whereDoesntHave('applications', fn ($q) => $q->where('user_id', $user->id));
         Log::info($jobsQuery->toSql(), $jobsQuery->getBindings());
-        if ($jobTitles && !empty(array_filter((array) $jobTitles))) {
+        if ($jobTitles && ! empty(array_filter((array) $jobTitles))) {
             $jobsQuery->where(function ($query) use ($jobTitles) {
                 foreach ((array) $jobTitles as $title) {
-                    if (!empty($title)) {
+                    if (! empty($title)) {
                         $query->orWhere('title', 'LIKE', "%{$title}%");
                     }
                 }
             });
         }
-        if ($locations && !empty(array_filter((array) $locations))) {
+        if ($locations && ! empty(array_filter((array) $locations))) {
             $jobsQuery->whereIn('location', (array) $locations);
         }
-        if ($jobTypes && !empty(array_filter((array) $jobTypes))) {
+        if ($jobTypes && ! empty(array_filter((array) $jobTypes))) {
             $jobsQuery->leftJoin('job_types', 'jobs_listing.job_type_id', '=', 'job_types.id')
                 ->where(function ($query) use ($jobTypes) {
                     // FIX: Replaced problematic whereRaw with whereIn for compatibility and security.
@@ -110,7 +108,7 @@ class AutoApplyService
             'locations' => $locations,
             'job_types' => $jobTypes,
             'salary_min' => $preferences->salary_min,
-            'salary_max' => $preferences->salary_max
+            'salary_max' => $preferences->salary_max,
         ]);
 
         // FIX: The condition was inverted. It should check if the collection IS EMPTY, not if it's NOT empty.
@@ -119,8 +117,9 @@ class AutoApplyService
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'no_jobs_found',
-                'reason' => 'No jobs matching user preferences'
+                'reason' => 'No jobs matching user preferences',
             ]);
+
             return;
         }
 
@@ -141,14 +140,14 @@ class AutoApplyService
                     'user_id' => $user->id,
                     'resume_path' => $profile->resume_path,
                     'cover_letter' => $coverLetter,
-                    'status' => 'pending'
+                    'status' => 'pending',
                 ]);
                 Log::info('DEBUG: Application created', ['application_id' => $application->id]);
 
                 AutoApplyLog::create([
                     'user_id' => $user->id,
                     'job_id' => $job->id,
-                    'status' => 'success'
+                    'status' => 'success',
                 ]);
                 $appliedJobs[] = $job->id;
             } catch (Exception $e) {
@@ -157,27 +156,28 @@ class AutoApplyService
                     'user_id' => $user->id,
                     'job_id' => $job->id,
                     'status' => 'failed',
-                    'reason' => $e->getMessage()
+                    'reason' => $e->getMessage(),
                 ]);
             }
         }
         // Final summary log
-        if (!empty($appliedJobs)) {
+        if (! empty($appliedJobs)) {
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'completed',
                 'reason' => count($appliedJobs) > 0
-                    ? 'Auto-apply completed successfully for ' . count($appliedJobs) . ' jobs'
-                    : 'No jobs applied successfully'
+                    ? 'Auto-apply completed successfully for '.count($appliedJobs).' jobs'
+                    : 'No jobs applied successfully',
             ]);
         } else {
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'completed',
-                'reason' => 'No jobs applied successfully'
+                'reason' => 'No jobs applied successfully',
             ]);
         }
         Log::info('Finished processing auto-apply for user', ['user_id' => $user->id]);
+
         return $appliedJobs;
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Skill extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
     ];
@@ -17,6 +18,6 @@ class Skill extends Model
      */
     public function jobs()
     {
-        return $this->belongsToMany(Job::class,'jobs_skills', 'skill_id', 'job_id');
+        return $this->belongsToMany(Job::class, 'jobs_skills', 'skill_id', 'job_id');
     }
 }

@@ -16,6 +16,7 @@ class JobTypeFactory extends Factory
      * @return array<string, mixed>
      */
     protected $model = JobType::class;
+
     public function definition()
     {
         return [

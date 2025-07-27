@@ -1,10 +1,10 @@
 <?php
 
 use App\Contracts\GeminiClientInterface;
-use App\Services\AIServices;
-use App\Models\User;
 use App\Models\Job;
-use App\Models\Profile; 
+use App\Models\Profile;
+use App\Models\User;
+use App\Services\AIServices;
 
 describe('AIServices', function () {
     beforeEach(function () {
@@ -16,7 +16,7 @@ describe('AIServices', function () {
     it('initializes AIServices', function () {
         expect($this->aiService)->toBeInstanceOf(AIServices::class);
     });
-    
+
     it('throws exception when user has no profile', function () {
         $user = User::factory()->create();
         $job = Job::factory()->create();
@@ -24,7 +24,7 @@ describe('AIServices', function () {
         // This is to ensure that the service does not attempt to generate a cover letter
         $this->mockGeminiClient->shouldNotReceive('generateText');
 
-        expect(fn() => $this->aiService->generateCoverLetter($job, $user))
+        expect(fn () => $this->aiService->generateCoverLetter($job, $user))
             ->toThrow(Exception::class, 'User profile not found');
     });
 
@@ -33,24 +33,24 @@ describe('AIServices', function () {
         Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Experienced developer',
-            'skills' => ['PHP', 'Laravel']
+            'skills' => ['PHP', 'Laravel'],
         ]);
 
         $job = Job::factory()->create([
             'title' => 'Senior Developer',
-            'description' => 'We need a senior developer'
+            'description' => 'We need a senior developer',
         ]);
 
         // Prepare expected default prompt
-        $expectedPrompt = "Generate a cover letter for the following job:\n" .
-            "Title: Senior Developer\nDescription: We need a senior developer\n" .
+        $expectedPrompt = "Generate a cover letter for the following job:\n".
+            "Title: Senior Developer\nDescription: We need a senior developer\n".
             "User: {$user->name}\nBio: Experienced developer\nSkills: PHP, Laravel";
 
         // Mock Gemini client response
         $this->mockGeminiClient
             ->shouldReceive('generateText')
             ->once()
-            ->with(Mockery::on(fn($prompt) => str_contains($prompt, 'Senior Developer')))
+            ->with(Mockery::on(fn ($prompt) => str_contains($prompt, 'Senior Developer')))
             ->andReturn('Generated cover letter content');
 
         $result = $this->aiService->generateCoverLetter($job, $user);
@@ -63,12 +63,12 @@ describe('AIServices', function () {
         Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Experienced developer',
-            'skills' => ['PHP', 'Laravel']
+            'skills' => ['PHP', 'Laravel'],
         ]);
 
         $job = Job::factory()->create([
             'title' => 'Senior Developer',
-            'description' => 'We need a senior developer'
+            'description' => 'We need a senior developer',
         ]);
 
         $customTemplate = 'Custom template for cover letter';
@@ -77,7 +77,7 @@ describe('AIServices', function () {
         $this->mockGeminiClient
             ->shouldReceive('generateText')
             ->once()
-            ->with(Mockery::on(fn($prompt) => str_contains($prompt, $customTemplate)))
+            ->with(Mockery::on(fn ($prompt) => str_contains($prompt, $customTemplate)))
             ->andReturn('Generated cover letter content with custom prompt');
 
         $result = $this->aiService->generateCoverLetter($job, $user, json_encode(['custom_prompt' => $customTemplate]));
@@ -90,12 +90,12 @@ describe('AIServices', function () {
         Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'Full stack developer with 5 years experience',
-            'skills' => ['PHP', 'JavaScript', 'React']
+            'skills' => ['PHP', 'JavaScript', 'React'],
         ]);
 
         $job = Job::factory()->create([
             'title' => 'Frontend Developer',
-            'description' => 'Join our team as a frontend developer'
+            'description' => 'Join our team as a frontend developer',
         ]);
 
         $reflection = new ReflectionClass($this->aiService);
@@ -116,12 +116,12 @@ describe('AIServices', function () {
         Profile::factory()->create([
             'user_id' => $user->id,
             'bio' => 'New developer',
-            'skills' => null
+            'skills' => null,
         ]);
 
         $job = Job::factory()->create([
             'title' => 'Junior Developer',
-            'description' => 'Entry level position'
+            'description' => 'Entry level position',
         ]);
 
         $reflection = new ReflectionClass($this->aiService);

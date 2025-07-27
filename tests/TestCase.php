@@ -1,7 +1,7 @@
 <?php
 
 namespace Tests;
-use Tests\CreatesApplication;
+
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 
