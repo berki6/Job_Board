@@ -62,6 +62,6 @@ describe('User Model', function () {
         $user = User::factory()->create(['password' => 'password']);
 
         expect($user->password)->not->toBe('password')
-            ->and(Hash::check('password', $user->password))->toBeTrue();
+            ->and(Hash::check('password', $user->getAuthPassword()))->toBeTrue();
     });
 });

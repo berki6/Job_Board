@@ -4,7 +4,7 @@ use App\Contracts\GeminiClientInterface;
 use App\Services\AIServices;
 use App\Models\User;
 use App\Models\Job;
-use App\Models\Profile;
+use App\Models\Profile; 
 
 describe('AIServices', function () {
     beforeEach(function () {

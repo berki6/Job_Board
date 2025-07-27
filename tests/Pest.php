@@ -106,12 +106,10 @@ function createAutoApplyPreferences($user, $attributes = [])
         'cover_letter_template' => null,
     ];
 
-    $processedAttributes = [];
-    foreach ($attributes as $key => $value) {
-        $processedAttributes[$key] = in_array($key, ['job_titles', 'locations', 'job_types']) && is_array($value)
-            ? json_encode($value)
-            : $value;
-    }
+    // Merge defaults with attributes
+    $merged = array_merge($defaults, $attributes);
 
-    return App\Models\AutoApplyPreference::create(array_merge($defaults, $processedAttributes));
+    // Remove JSON encoding — just pass arrays as-is (or null)
+    // Eloquent will handle JSON encoding automatically because of $casts
+    return App\Models\AutoApplyPreference::create($merged);
 }

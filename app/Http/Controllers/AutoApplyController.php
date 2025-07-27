@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\AutoApplyPreference;
+use Illuminate\Support\Facades\Log;
 
 class AutoApplyController extends Controller
 {
@@ -21,7 +22,37 @@ class AutoApplyController extends Controller
             'salary_max' => null,
             'cover_letter_template' => null,
         ]);
+        Log::info('AutoApply preferences debug info',[
+            'job_titles_raw' => $preferences->getRawOriginal('job_titles'),
+            'job_titles_casted' => $preferences->job_titles,
+            'locations_raw' => $preferences->getRawOriginal('locations'),
+            'locations_casted' => $preferences->locations,
+        ]);
+
         return view('auto-apply', compact('preferences'));
+    }
+
+    /**
+     * Display the auto-apply preferences.
+     */
+    public function preferences(Request $request)
+    {
+        $preferences = $request->user()->autoApplyPreference ?? new AutoApplyPreference([
+            'user_id' => $request->user()->id,
+            'auto_apply_enabled' => false,
+            'job_titles' => [],
+            'locations' => [],
+            'salary_min' => null,
+            'salary_max' => null,
+            'cover_letter_template' => null,
+        ]);
+        Log::info('AutoApply preferences debug info', [
+            'job_titles_raw' => $preferences->getRawOriginal('job_titles'),
+            'job_titles_casted' => $preferences->job_titles,
+            'locations_raw' => $preferences->getRawOriginal('locations'),
+            'locations_casted' => $preferences->locations,
+        ]);
+        return view('auto-apply-preferences', compact('preferences'));
     }
 
     /**
@@ -42,13 +73,18 @@ class AutoApplyController extends Controller
         $preferences = $user->autoApplyPreference ?? new AutoApplyPreference(['user_id' => $user->id]);
 
         $preferences->fill([
-            'job_titles' => $request->job_titles ? json_decode($request->job_titles, true) : null,
-            'locations' => $request->locations ? json_decode($request->locations, true) : null,
+            'job_titles' => $request->job_titles ? json_decode($request->job_titles, true) : [],
+            'locations' => $request->locations ? json_decode($request->locations, true) : [],
             'salary_min' => $request->salary_min,
             'salary_max' => $request->salary_max,
             'cover_letter_template' => $request->cover_letter_template,
         ]);
-
+        Log::info('AutoApply preferences debug info',[
+            'job_titles_raw' => $preferences->getRawOriginal('job_titles'),
+            'job_titles_casted' => $preferences->job_titles,
+            'locations_raw' => $preferences->getRawOriginal('locations'),
+            'locations_casted' => $preferences->locations,
+        ]);
         $preferences->save();
 
         return back()->with('success', 'Preferences updated successfully.');
