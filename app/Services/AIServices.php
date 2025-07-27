@@ -24,6 +24,11 @@ class AIServices
             'preferences' => $preferences,
         ]);
 
+        if (!$user->profile) {
+            Log::error('User profile not found when generating cover letter.', ['user_id' => $user->id]);
+            throw new \Exception('User profile not found');
+        }
+
         $formattedSalary = '$' . number_format(floatval($job->salary), 2); // Convert to float before formatting
 
         $prompt = "Generate a professional cover letter for the following job:\n\n" .

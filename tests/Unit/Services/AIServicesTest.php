@@ -13,9 +13,16 @@ describe('AIServices', function () {
         $this->aiService = new AIServices($this->mockGeminiClient);
     });
 
+    it('initializes AIServices', function () {
+        expect($this->aiService)->toBeInstanceOf(AIServices::class);
+    });
+    
     it('throws exception when user has no profile', function () {
         $user = User::factory()->create();
         $job = Job::factory()->create();
+        // Expect no call to generateText because exception thrown early
+        // This is to ensure that the service does not attempt to generate a cover letter
+        $this->mockGeminiClient->shouldNotReceive('generateText');
 
         expect(fn() => $this->aiService->generateCoverLetter($job, $user))
             ->toThrow(Exception::class, 'User profile not found');
@@ -51,10 +58,18 @@ describe('AIServices', function () {
         expect($result)->toBe('Generated cover letter content');
     });
 
-    it('generates cover letter with custom template', function () {
+    it('generates cover letter with custom prompt', function () {
         $user = User::factory()->create();
-        Profile::factory()->create(['user_id' => $user->id]);
-        $job = Job::factory()->create();
+        Profile::factory()->create([
+            'user_id' => $user->id,
+            'bio' => 'Experienced developer',
+            'skills' => ['PHP', 'Laravel']
+        ]);
+
+        $job = Job::factory()->create([
+            'title' => 'Senior Developer',
+            'description' => 'We need a senior developer'
+        ]);
 
         $customTemplate = 'Custom template for cover letter';
 
@@ -62,12 +77,12 @@ describe('AIServices', function () {
         $this->mockGeminiClient
             ->shouldReceive('generateText')
             ->once()
-            ->with($customTemplate)
-            ->andReturn('Custom cover letter');
+            ->with(Mockery::on(fn($prompt) => str_contains($prompt, $customTemplate)))
+            ->andReturn('Generated cover letter content with custom prompt');
 
-        $result = $this->aiService->generateCoverLetter($job, $user, $customTemplate);
+        $result = $this->aiService->generateCoverLetter($job, $user, json_encode(['custom_prompt' => $customTemplate]));
 
-        expect($result)->toBe('Custom cover letter');
+        expect($result)->toBe('Generated cover letter content with custom prompt');
     });
 
     it('creates correct default prompt with user skills', function () {
