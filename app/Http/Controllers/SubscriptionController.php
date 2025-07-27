@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Stripe\Exception\CardException;
 
 class SubscriptionController extends Controller
 {
@@ -15,12 +17,32 @@ class SubscriptionController extends Controller
 
     public function create(Request $request)
     {
-        $request->validate(['paymentMethodId' => 'required|string']);
+        $request->validate([
+            'paymentMethodId' => 'required|string',
+        ]);
 
-        $request->user()->newSubscription('premium', 'price_1Rp1zVFIcfi7ZhWBIcwGdyTV')
-            ->create($request->paymentMethodId);
+        try {
+            $user = $request->user();
 
-        return redirect()->route('auto.apply')->with('success', 'You are now subscribed to premium!');
+            $user->newSubscription('premium', 'price_1Rp1zVFIcfi7ZhWBIcwGdyTV')
+                ->create($request->paymentMethodId);
+
+            return redirect()->route('auto.apply')->with('success', 'You are now subscribed to premium!');
+        } catch (CardException $e) {
+            // Card was declined or payment failed
+            Log::error('Subscription creation failed: ' . $e->getMessage());
+            return back()->withErrors([
+                'payment' => 'Your card was declined. Please use a different payment method.',
+            ]);
+        } catch (\Exception $e) {
+            // General exception handling
+            // You may want to log this exception
+            Log::error('Subscription creation failed: ' . $e->getMessage());
+
+            return back()->withErrors([
+                'payment' => 'An error occurred while processing your subscription. Please try again.',
+            ]);
+        }
     }
 }
 
