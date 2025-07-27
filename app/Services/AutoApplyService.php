@@ -26,6 +26,8 @@ class AutoApplyService
 
     public function processForUser($user)
     {
+        Log::info('Processing auto-apply for user', ['user_id' => $user->id]);
+
         if (!$user->subscribed('premium')) {
             Log::info('User not premium', ['user_id' => $user->id]);
             return;
@@ -44,9 +46,11 @@ class AutoApplyService
                 'status' => 'failed',
                 'reason' => 'User profile or resume not found',
             ]);
-            Log::info('No profile or resume', ['user_id' => $user->id]);
+            Log::info('No profile or resume, skipping user', ['user_id' => $user->id]);
             return;
         }
+
+        Log::info('User passes initial checks', ['user_id' => $user->id]);
 
         // Use array casting to handle both JSON strings and arrays gracefully
         $jobTitles = is_string($preferences->job_titles) ? json_decode($preferences->job_titles, true) ?? [] : (array) ($preferences->job_titles ?? []);
@@ -173,6 +177,7 @@ class AutoApplyService
                 'reason' => 'No jobs applied successfully'
             ]);
         }
+        Log::info('Finished processing auto-apply for user', ['user_id' => $user->id]);
         return $appliedJobs;
     }
 }

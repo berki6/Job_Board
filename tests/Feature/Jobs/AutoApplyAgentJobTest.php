@@ -31,16 +31,21 @@ describe('AutoApplyAgentJob', function () {
             'status' => 'open'
         ]);
 
-        // Mock AI service
-        $this->mock(AIServices::class, function ($mock) {
-            $mock->shouldReceive('generateCoverLetter')
-                ->once()
-                ->andReturn('Generated cover letter');
-        });
+        // Mock AIServices so generateCoverLetter returns a dummy cover letter
+        $mockAI = $this->mock(AIServices::class);
+        $mockAI->shouldReceive('generateCoverLetter')
+            ->once()
+            ->andReturn('Generated cover letter');
+
+        // Bind mocked AI service in container to be injected where needed
+        $this->app->bind(AIServices::class, fn() => $mockAI);
+
+        // Resolve AutoApplyService manually with mocked AI service injected
+        $autoApplyService = $this->app->make(AutoApplyService::class);
 
         // Execute the job
         $job = new AutoApplyAgentJob();
-        $job->handle(app(AutoApplyService::class));
+        $job->handle($autoApplyService);
 
         // Assert application was created
         expect(Application::count())->toBe(1)
@@ -131,7 +136,7 @@ describe('AutoApplyAgentJob', function () {
         // Should create failure log
         expect(Application::count())->toBe(0)
             ->and(AutoApplyLog::where('status', 'failed')->count())->toBe(1);
-            
+        // Check log reason
         $log = AutoApplyLog::first();
         expect($log->reason)->toBe('User profile or resume not found');
     });
@@ -147,7 +152,7 @@ describe('AutoApplyAgentJob', function () {
                 ->once()
                 ->with(Mockery::on(function ($user) {
                     return $user->relationLoaded('autoApplyPreference') &&
-                           $user->relationLoaded('profile');
+                        $user->relationLoaded('profile');
                 }));
         });
 
@@ -157,7 +162,7 @@ describe('AutoApplyAgentJob', function () {
 
     it('implements ShouldQueue interface', function () {
         $job = new AutoApplyAgentJob();
-        
+
         expect($job)->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
     });
 });

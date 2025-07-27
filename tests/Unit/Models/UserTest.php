@@ -5,6 +5,7 @@ use App\Models\Profile;
 use App\Models\AutoApplyPreference;
 use App\Models\Application;
 use App\Models\Job;
+use Illuminate\Support\Facades\Hash;
 
 describe('User Model', function () {
     it('can create a user', function () {
