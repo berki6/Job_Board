@@ -79,6 +79,14 @@ class UserController extends Controller
         return redirect()->route('profile.show')->with('success', 'Profile updated');
     }
 
-    
-    
+    // Show skills form
+    public function editSkills(Request $request)
+    {
+        $user = $request->user();
+        $this->authorize('update-skills', $user);
+        $skills = Skill::all();
+        $userSkills = $user->skills->pluck('name')->toArray();
+        return view('profile.skills', compact('skills', 'userSkills'));
+    }
+
 }
