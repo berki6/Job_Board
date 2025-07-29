@@ -9,10 +9,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'slug',
-    ];
+    protected $fillable = ['name'];
 
     /**
      * Get the jobs in this category.
