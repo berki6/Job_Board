@@ -107,4 +107,23 @@ class UserController extends Controller
         $user->skills()->syncWithoutDetaching($request->skills);
         return redirect()->route('profile.show')->with('success', 'Skills added');
     }
+
+    // Remove skills
+    public function removeSkills(Request $request)
+    {
+        $user = $request->user();
+        $this->authorize('update-skills', $user);
+
+        $validator = Validator::make($request->all(), [
+            'skills' => 'required|array',
+            'skills.*' => 'string|exists:skills,name'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $user->skills()->detach($request->skills);
+        return redirect()->route('profile.show')->with('success', 'Skills removed');
+    }
 }
