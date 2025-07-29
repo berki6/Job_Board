@@ -44,6 +44,22 @@ class Job extends Model
         ];
     }
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($job) {
+            $job->slug = $job->generateUniqueSlug($job->title);
+            $job->is_open = true; // Default to open
+        });
+
+        static::updating(function ($job) {
+            if ($job->isDirty('title')) {
+                $job->slug = $job->generateUniqueSlug($job->title);
+            }
+        });
+    }
+
     /**
      * Get the company that posted the job.
      */
