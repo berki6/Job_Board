@@ -56,4 +56,22 @@ class ApplicationController extends Controller
         \App\Jobs\NotifyEmployerJob::dispatch($job->user, $application);
         return redirect()->route('dashboard.job-seeker')->with('success', 'Application submitted');
     }
+
+    // Update application status
+    public function updateStatus(Request $request, Application $application)
+    {
+        $this->authorize('update', $application);
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:pending,reviewed,rejected'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $application->update(['status' => $request->status]);
+        \App\Jobs\NotifyJobSeekerJob::dispatch($application->user, $application);
+        return redirect()->route('dashboard.employer')->with('success', 'Application status updated');
+    }
 }
