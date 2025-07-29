@@ -114,4 +114,42 @@ class JobController extends Controller
         $jobTypes = JobType::all();
         return view('jobs.edit', compact('job', 'categories', 'jobTypes'));
     }
+
+    // Update job
+    public function update(Request $request, Job $job)
+    {
+        $this->authorize('update', $job);
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'string|max:255',
+            'description' => 'string',
+            'location' => 'nullable|string|max:255',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'job_type_id' => 'exists:job_types,id',
+            'category_id' => 'exists:categories,id',
+            'remote' => 'boolean',
+            'application_method' => 'in:form,external',
+            'external_link' => 'nullable|url|required_if:application_method,external'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $job->update($request->only([
+            'title',
+            'description',
+            'location',
+            'salary_min',
+            'salary_max',
+            'job_type_id',
+            'category_id',
+            'remote',
+            'application_method',
+            'external_link'
+        ]));
+
+        return redirect()->route('jobs.index')->with('success', 'Job updated');
+    }
 }
