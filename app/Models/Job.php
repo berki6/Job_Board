@@ -34,7 +34,7 @@ class Job extends Model
         'salary_min' => 'decimal:2',
         'salary_max' => 'decimal:2',
     ];
-    
+
     public function toSearchableArray()
     {
         return [
@@ -80,9 +80,9 @@ class Job extends Model
     /**
      * Get the company that posted the job.
      */
-    public function company()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'company_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
@@ -101,6 +101,11 @@ class Job extends Model
         return $this->hasMany(Application::class, 'job_id');
     }
 
+    public function savedBy()
+    {
+        return $this->belongsToMany(User::class, 'saved_jobs');
+    }
+
     /**
      * Get the skills required for this job.
      */
@@ -116,4 +121,9 @@ class Job extends Model
     {
         return $this->belongsTo(JobType::class, 'job_type_id');
     }
+
+    // public function rejections()
+    // {
+    //     return $this->hasMany(JobRejection::class);
+    // }
 }
