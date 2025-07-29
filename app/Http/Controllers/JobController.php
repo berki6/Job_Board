@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\JobType;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,7 +35,7 @@ class JobController extends Controller
         });
         return view('jobs.index', compact('jobs'));
     }
-    
+
     /**
      * Display a single job.
      * Show job details (public)
@@ -48,5 +49,19 @@ class JobController extends Controller
             ->with(['user.profile', 'jobType', 'category'])
             ->firstOrFail();
         return view('jobs.show', compact('job'));
+    }
+
+    /**
+     * Show the form for creating a new job.
+     * Show job creation form (auth)
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        $this->authorize('post_jobs', Auth::user());
+        $categories = Category::all();
+        $jobTypes = JobType::all();
+        return view('jobs.create', compact('categories', 'jobTypes'));
     }
 }
