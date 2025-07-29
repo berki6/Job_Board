@@ -18,4 +18,12 @@ class UserController extends Controller
         $this->middleware('auth');
         $this->middleware('premium')->only(['premiumFeature']);
     }
+
+    // Show user profile
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+        $profile = $user->profile()->with('user.skills')->firstOrFail();
+        return view('profile.show', compact('profile'));
+    }
 }
