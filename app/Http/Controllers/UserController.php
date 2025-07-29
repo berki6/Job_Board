@@ -89,4 +89,22 @@ class UserController extends Controller
         return view('profile.skills', compact('skills', 'userSkills'));
     }
 
+    // Add skills
+    public function addSkills(Request $request)
+    {
+        $user = $request->user();
+        $this->authorize('update-skills', $user);
+
+        $validator = Validator::make($request->all(), [
+            'skills' => 'required|array',
+            'skills.*' => 'string|exists:skills,name'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $user->skills()->syncWithoutDetaching($request->skills);
+        return redirect()->route('profile.show')->with('success', 'Skills added');
+    }
 }
