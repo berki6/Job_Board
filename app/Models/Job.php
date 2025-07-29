@@ -12,23 +12,37 @@ class Job extends Model
     protected $table = 'jobs_listing';
 
     protected $fillable = [
-        'company_id',
-        'category_id',
+        'user_id',
         'job_type_id',
+        'category_id',
         'title',
         'description',
         'location',
-        'salary',
         'salary_min',
         'salary_max',
+        'remote',
         'status',
+        'is_open',
+        'is_featured',
+        'application_method',
+        'external_link',
+        'slug'
     ];
-
     protected $casts = [
         'salary' => 'decimal:2',
         'salary_min' => 'decimal:2',
         'salary_max' => 'decimal:2',
     ];
+    
+    public function toSearchableArray()
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+            'location' => $this->location,
+            'is_open' => $this->is_open, // Include in search for filtering
+        ];
+    }
 
     /**
      * Get the company that posted the job.
