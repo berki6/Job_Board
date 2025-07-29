@@ -152,4 +152,22 @@ class JobController extends Controller
 
         return redirect()->route('jobs.index')->with('success', 'Job updated');
     }
+
+    // Toggle is_open status
+    public function toggleOpen(Request $request, Job $job)
+    {
+        $this->authorize('update', $job);
+
+        $validator = Validator::make($request->all(), [
+            'is_open' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $job->update(['is_open' => $request->is_open]);
+        Cache::forget('jobs_page_' . $request->page);
+        return redirect()->route('jobs.index')->with('success', 'Job status updated');
+    }
 }
