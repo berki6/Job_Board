@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
 {
@@ -24,5 +25,35 @@ class ApplicationController extends Controller
             return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
         }
         return view('applications.create', compact('job'));
+    }
+
+    // Submit application
+    public function store(Request $request, Job $job)
+    {
+        $user = Auth::user();
+        $this->authorize('apply_jobs', $user);
+
+        if (!$job->is_open) {
+            return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'resume' => 'required|file|mimes:pdf|max:5120',
+            'cover_letter' => 'nullable|string|max:2000'
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $application = $job->applications()->create([
+            'user_id' => $user->id,
+            'resume_path' => $request->file('resume')->store('resumes', 'public'),
+            'cover_letter' => $request->cover_letter,
+            'status' => 'pending'
+        ]);
+
+        \App\Jobs\NotifyEmployerJob::dispatch($job->user, $application);
+        return redirect()->route('dashboard.job-seeker')->with('success', 'Application submitted');
     }
 }
