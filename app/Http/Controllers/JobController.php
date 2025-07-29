@@ -105,4 +105,13 @@ class JobController extends Controller
 
         return redirect()->route('jobs.index')->with('success', 'Job created, pending approval');
     }
+
+    // Show job edit form
+    public function edit(Job $job)
+    {
+        $this->authorize('update', $job);
+        $categories = Category::all();
+        $jobTypes = JobType::all();
+        return view('jobs.edit', compact('job', 'categories', 'jobTypes'));
+    }
 }
