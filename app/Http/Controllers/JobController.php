@@ -34,4 +34,19 @@ class JobController extends Controller
         });
         return view('jobs.index', compact('jobs'));
     }
+    
+    /**
+     * Display a single job.
+     * Show job details (public)
+     *
+     * @return \Illuminate\View\View
+     */
+    public function show($slug)
+    {
+        $job = Job::where('slug', $slug)
+            ->where('status', 'published')
+            ->with(['user.profile', 'jobType', 'category'])
+            ->firstOrFail();
+        return view('jobs.show', compact('job'));
+    }
 }
