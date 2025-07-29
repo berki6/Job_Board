@@ -77,6 +77,26 @@ class User extends Authenticatable
      */
     public function jobs()
     {
-        return $this->hasMany(Job::class, 'company_id');
+        return $this->hasMany(Job::class, 'user_id');
+    }
+    
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class);
+    }
+
+    public function savedJobs()
+    {
+        return $this->belongsToMany(Job::class, 'saved_jobs');
+    }
+
+    public function jobAlerts()
+    {
+        return $this->hasMany(JobAlert::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 }
