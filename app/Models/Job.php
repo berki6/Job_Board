@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Laravel\Scout\Searchable;
 
 class Job extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     protected $table = 'jobs_listing';
 
