@@ -170,4 +170,13 @@ class JobController extends Controller
         Cache::forget('jobs_page_' . $request->page);
         return redirect()->route('jobs.index')->with('success', 'Job status updated');
     }
+
+    // Delete job
+    public function destroy(Job $job)
+    {
+        $this->authorize('delete', $job);
+        $job->delete();
+        Cache::forget('jobs_page_' . request()->page);
+        return redirect()->route('jobs.index')->with('success', 'Job deleted');
+    }
 }
