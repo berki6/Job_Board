@@ -16,7 +16,8 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('premium')->only(['premiumFeature']);
+        // $this->middleware('premium')->only(['premiumFeature']);
+        //(getback to it)
     }
 
     // Show user profile

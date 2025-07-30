@@ -20,7 +20,7 @@ class PaymentController extends Controller
     // Show payment form for featured job
     public function create(Job $job, Request $request)
     {
-        $this->authorize('update', $job);
+        $this->authorize('create_payment', $job);
         $intent = $request->user()->createSetupIntent();
         return view('payments.create', compact('job', 'intent'));
     }
@@ -29,7 +29,7 @@ class PaymentController extends Controller
     public function store(Request $request, Job $job)
     {
         $user = $request->user();
-        $this->authorize('update', $job);
+        $this->authorize('create_payment', $job);
 
         $validator = Validator::make($request->all(), [
             'payment_method' => 'required|string'

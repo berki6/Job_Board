@@ -59,7 +59,7 @@ class JobAlertController extends Controller
     // Delete job alert
     public function destroy(JobAlert $jobAlert)
     {
-        $this->authorize('delete', $jobAlert);
+        $this->authorize('delete-job-alert', $jobAlert);
         $jobAlert->delete();
         return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert deleted');
     }

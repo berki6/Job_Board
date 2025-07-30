@@ -59,7 +59,7 @@ class JobController extends Controller
      */
     public function create()
     {
-        $this->authorize('post_jobs', Auth::user());
+        $this->authorize('create_jobs', Auth::user());
         $categories = Category::all();
         $jobTypes = JobType::all();
         return view('jobs.create', compact('categories', 'jobTypes'));
@@ -70,7 +70,7 @@ class JobController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        $this->authorize('post_jobs', $user);
+        $this->authorize('create_jobs', $user);
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
@@ -104,13 +104,15 @@ class JobController extends Controller
             'is_open' => true,
         ]);
 
+        // $job->save();
+
         return redirect()->route('jobs.index')->with('success', 'Job created, pending approval');
     }
 
     // Show job edit form
     public function edit(Job $job)
     {
-        $this->authorize('update', $job);
+        $this->authorize('edit_jobs', $job);
         $categories = Category::all();
         $jobTypes = JobType::all();
         return view('jobs.edit', compact('job', 'categories', 'jobTypes'));
@@ -119,7 +121,7 @@ class JobController extends Controller
     // Update job
     public function update(Request $request, Job $job)
     {
-        $this->authorize('update', $job);
+        $this->authorize('edit_jobs', $job);
 
         $validator = Validator::make($request->all(), [
             'title' => 'string|max:255',
@@ -175,7 +177,7 @@ class JobController extends Controller
     // Delete job
     public function destroy(Job $job)
     {
-        $this->authorize('delete', $job);
+        $this->authorize('delete_jobs', $job);
         $job->delete();
         Cache::forget('jobs_page_' . request()->page);
         return redirect()->route('jobs.index')->with('success', 'Job deleted');

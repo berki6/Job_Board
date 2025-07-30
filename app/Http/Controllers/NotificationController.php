@@ -23,7 +23,7 @@ class NotificationController extends Controller
     // Mark notification as read
     public function markAsRead(Notification $notification)
     {
-        $this->authorize('update', $notification);
+        $this->authorize('read_notification', $notification);
         $notification->update(['read' => true]);
         return redirect()->route('notifications.index')->with('success', 'Notification marked as read');
     }
