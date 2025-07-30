@@ -23,6 +23,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_banned',
+        'email_verified_at',
+        'stripe_id',
+        'pm_type',
+        'pm_last_four',
+        'trial_ends_at'
     ];
 
     /**
@@ -33,6 +39,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'stripe_id',
+        'pm_type',
+        'pm_last_four'
     ];
 
     /**
@@ -45,6 +54,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'trial_ends_at' => 'datetime',
+            'is_banned' => 'boolean'
         ];
     }
 
@@ -82,7 +93,7 @@ class User extends Authenticatable
     
     public function skills()
     {
-        return $this->belongsToMany(Skill::class);
+        return $this->belongsToMany(Skill::class, 'skill_user');
     }
 
     public function savedJobs()
@@ -98,5 +109,10 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 }
