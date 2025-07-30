@@ -43,7 +43,6 @@ class SubscriptionController extends Controller
             ]);
         } catch (\Exception $e) {
             // General exception handling
-            // You may want to log this exception
             Log::error('Subscription creation failed: '.$e->getMessage());
 
             return back()->withErrors([
