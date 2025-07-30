@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Route middleware aliases
         $middleware->alias([
             'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+            // 'auth' => \App\Http\Controllers\Auth\AuthenticatedSessionController::class,
             'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
             'can' => \Illuminate\Auth\Middleware\Authorize::class,
             'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,

@@ -68,7 +68,8 @@ class JobController extends Controller
     // Create job
     public function store(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
+        $user = $request->user();
         $this->authorize('post_jobs', $user);
 
         $validator = Validator::make($request->all(), [

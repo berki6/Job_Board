@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Profile;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager as Image;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 
 class UserController extends Controller
 {
@@ -69,7 +69,7 @@ class UserController extends Controller
                 Storage::delete($profile->logo_path);
             }
             $upload = $request->file('logo');
-            $image = Image::imagick()->read($upload)->cover(200,200)->encode();
+            $image = Image::imagick()->read($upload)->cover(200, 200)->encode();
             $path = 'logos/' . uniqid() . '.' . $request->file('logo')->extension();
             Storage::put($path, $image);
             $data['logo_path'] = $path;
@@ -77,6 +77,22 @@ class UserController extends Controller
 
         $profile->update($data);
         return redirect()->route('profile.show')->with('success', 'Profile updated');
+    }
+
+    //Delete the user's account.
+    public function destroyAccount(Request $request)
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+        $user = $request->user();
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
     }
 
     // Show skills form

@@ -29,7 +29,8 @@ class JobAlertController extends Controller
     // Create job alert
     public function store(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
+        $user = $request->user();
         $this->authorize('create-job-alert', $user);
 
         $validator = Validator::make($request->all(), [

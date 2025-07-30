@@ -19,7 +19,8 @@ class DashboardController extends Controller
     // Job seeker dashboard
     public function jobSeeker(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
+        $user = $request->user();
         $this->authorize('view-job-seeker-dashboard', $user);
 
         $profile = $user->profile;
@@ -34,7 +35,8 @@ class DashboardController extends Controller
     // Employer dashboard
     public function employer(Request $request)
     {
-        $user = Auth::user();
+        // $user = Auth::user();
+        $user = $request->user();
         $this->authorize('view-employer-dashboard', $user);
 
         $jobs = $user->jobs()->with(['jobType', 'category'])->get();
