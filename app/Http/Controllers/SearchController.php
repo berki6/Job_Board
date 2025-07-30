@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Job;
 use App\Models\JobType;
-use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class SearchController extends Controller
 {
@@ -18,7 +18,7 @@ class SearchController extends Controller
         $jobTypes = JobType::all();
 
         // If there is a search query, use Scout's search
-        if (!empty($query)) {
+        if (! empty($query)) {
             $jobs = Job::search($query)
                 ->where('status', 'published')
                 ->where('is_open', true);
@@ -61,6 +61,7 @@ class SearchController extends Controller
         }
 
         $jobs = $jobs->paginate(20);
+
         return view('search.index', compact('jobs', 'categories', 'jobTypes', 'query'));
     }
 }

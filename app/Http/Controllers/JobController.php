@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Job;
 use App\Models\Category;
+use App\Models\Job;
 use App\Models\JobType;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -27,12 +27,13 @@ class JobController extends Controller
     // List published, open jobs (public)
     public function index(Request $request)
     {
-        $jobs = Cache::remember('jobs_page_' . $request->page, 3600, function () {
+        $jobs = Cache::remember('jobs_page_'.$request->page, 3600, function () {
             return Job::where('status', 'published')
                 ->where('is_open', true)
                 ->with(['user.profile', 'jobType', 'category'])
                 ->paginate(20);
         });
+
         return view('jobs.index', compact('jobs'));
     }
 
@@ -48,13 +49,14 @@ class JobController extends Controller
             ->where('status', 'published')
             ->with(['user.profile', 'jobType', 'category'])
             ->firstOrFail();
+
         return view('jobs.show', compact('job'));
     }
 
     /**
      * Show the form for creating a new job.
      * Show job creation form (auth)
-     * 
+     *
      * @return \Illuminate\View\View
      */
     public function create()
@@ -62,6 +64,7 @@ class JobController extends Controller
         $this->authorize('create_jobs', Auth::user());
         $categories = Category::all();
         $jobTypes = JobType::all();
+
         return view('jobs.create', compact('categories', 'jobTypes'));
     }
 
@@ -82,7 +85,7 @@ class JobController extends Controller
             'category_id' => 'required|exists:categories,id',
             'remote' => 'boolean',
             'application_method' => 'in:form,external',
-            'external_link' => 'nullable|url|required_if:application_method,external'
+            'external_link' => 'nullable|url|required_if:application_method,external',
         ]);
 
         if ($validator->fails()) {
@@ -115,6 +118,7 @@ class JobController extends Controller
         $this->authorize('edit_jobs', $job);
         $categories = Category::all();
         $jobTypes = JobType::all();
+
         return view('jobs.edit', compact('job', 'categories', 'jobTypes'));
     }
 
@@ -133,7 +137,7 @@ class JobController extends Controller
             'category_id' => 'exists:categories,id',
             'remote' => 'boolean',
             'application_method' => 'in:form,external',
-            'external_link' => 'nullable|url|required_if:application_method,external'
+            'external_link' => 'nullable|url|required_if:application_method,external',
         ]);
 
         if ($validator->fails()) {
@@ -150,7 +154,7 @@ class JobController extends Controller
             'category_id',
             'remote',
             'application_method',
-            'external_link'
+            'external_link',
         ]));
 
         return redirect()->route('jobs.index')->with('success', 'Job updated');
@@ -162,7 +166,7 @@ class JobController extends Controller
         $this->authorize('update', $job);
 
         $validator = Validator::make($request->all(), [
-            'is_open' => 'required|boolean'
+            'is_open' => 'required|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -170,7 +174,8 @@ class JobController extends Controller
         }
 
         $job->update(['is_open' => $request->is_open]);
-        Cache::forget('jobs_page_' . $request->page);
+        Cache::forget('jobs_page_'.$request->page);
+
         return redirect()->route('jobs.index')->with('success', 'Job status updated');
     }
 
@@ -179,7 +184,8 @@ class JobController extends Controller
     {
         $this->authorize('delete_jobs', $job);
         $job->delete();
-        Cache::forget('jobs_page_' . request()->page);
+        Cache::forget('jobs_page_'.request()->page);
+
         return redirect()->route('jobs.index')->with('success', 'Job deleted');
     }
 }

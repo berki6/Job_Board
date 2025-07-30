@@ -28,7 +28,7 @@ class User extends Authenticatable
         'stripe_id',
         'pm_type',
         'pm_last_four',
-        'trial_ends_at'
+        'trial_ends_at',
     ];
 
     /**
@@ -41,7 +41,7 @@ class User extends Authenticatable
         'remember_token',
         'stripe_id',
         'pm_type',
-        'pm_last_four'
+        'pm_last_four',
     ];
 
     /**
@@ -55,7 +55,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'trial_ends_at' => 'datetime',
-            'is_banned' => 'boolean'
+            'is_banned' => 'boolean',
         ];
     }
 
@@ -90,7 +90,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Job::class, 'user_id');
     }
-    
+
     public function skills()
     {
         return $this->belongsToMany(Skill::class, 'skill_user');

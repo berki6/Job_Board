@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JobAlert;
 use App\Models\Category;
+use App\Models\JobAlert;
 use App\Models\JobType;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class JobAlertController extends Controller
 {
@@ -23,6 +23,7 @@ class JobAlertController extends Controller
         $this->authorize('create-job-alert', Auth::user());
         $categories = Category::all();
         $jobTypes = JobType::all();
+
         return view('job-alerts.create', compact('categories', 'jobTypes'));
     }
 
@@ -38,7 +39,7 @@ class JobAlertController extends Controller
             'location' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'job_type_id' => 'nullable|exists:job_types,id',
-            'frequency' => 'required|in:daily,weekly'
+            'frequency' => 'required|in:daily,weekly',
         ]);
 
         if ($validator->fails()) {
@@ -50,7 +51,7 @@ class JobAlertController extends Controller
             'location',
             'category_id',
             'job_type_id',
-            'frequency'
+            'frequency',
         ]));
 
         return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert created');
@@ -61,6 +62,7 @@ class JobAlertController extends Controller
     {
         $this->authorize('delete-job-alert', $jobAlert);
         $jobAlert->delete();
+
         return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert deleted');
     }
 }

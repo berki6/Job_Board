@@ -28,8 +28,9 @@ class Job extends Model
         'is_featured',
         'application_method',
         'external_link',
-        'slug'
+        'slug',
     ];
+
     protected $casts = [
         'salary' => 'decimal:2',
         'salary_min' => 'decimal:2',
@@ -72,7 +73,7 @@ class Job extends Model
         $count = 1;
 
         while (static::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $count++;
+            $slug = $originalSlug.'-'.$count++;
         }
 
         return $slug;

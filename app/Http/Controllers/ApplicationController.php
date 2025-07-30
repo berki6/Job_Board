@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Job;
 use App\Models\Application;
+use App\Models\Job;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
@@ -21,9 +20,10 @@ class ApplicationController extends Controller
     public function create(Job $job)
     {
         $this->authorize('apply_jobs', Auth::user());
-        if (!$job->is_open) {
+        if (! $job->is_open) {
             return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
         }
+
         return view('applications.create', compact('job'));
     }
 
@@ -33,13 +33,13 @@ class ApplicationController extends Controller
         $user = Auth::user();
         $this->authorize('apply_jobs', $user);
 
-        if (!$job->is_open) {
+        if (! $job->is_open) {
             return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
         }
 
         $validator = Validator::make($request->all(), [
             'resume' => 'required|file|mimes:pdf|max:5120',
-            'cover_letter' => 'nullable|string|max:2000'
+            'cover_letter' => 'nullable|string|max:2000',
         ]);
 
         if ($validator->fails()) {
@@ -50,10 +50,11 @@ class ApplicationController extends Controller
             'user_id' => $user->id,
             'resume_path' => $request->file('resume')->store('resumes', 'public'),
             'cover_letter' => $request->cover_letter,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         \App\Jobs\NotifyEmployerJob::dispatch($job->user, $application);
+
         return redirect()->route('dashboard.job-seeker')->with('success', 'Application submitted');
     }
 
@@ -63,7 +64,7 @@ class ApplicationController extends Controller
         $this->authorize('update', $application);
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:pending,reviewed,rejected'
+            'status' => 'required|in:pending,reviewed,rejected',
         ]);
 
         if ($validator->fails()) {
@@ -72,6 +73,7 @@ class ApplicationController extends Controller
 
         $application->update(['status' => $request->status]);
         \App\Jobs\NotifyJobSeekerJob::dispatch($application->user, $application);
+
         return redirect()->route('dashboard.employer')->with('success', 'Application status updated');
     }
 }

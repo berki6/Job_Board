@@ -1,17 +1,17 @@
 <?php
 
-use App\Http\Controllers\AutoApplyController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\AutoApplyController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobAlertController;
+use App\Http\Controllers\JobController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -95,4 +95,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
