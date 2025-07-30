@@ -47,6 +47,22 @@ class Job extends Model
         ];
     }
 
+    /**
+     * Generate a unique slug for the job title.
+     */
+    protected function generateUniqueSlug($title)
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+
+        return $slug;
+    }
+
     public static function boot()
     {
         parent::boot();
@@ -61,22 +77,6 @@ class Job extends Model
                 $job->slug = $job->generateUniqueSlug($job->title);
             }
         });
-    }
-
-    /**
-     * Generate a unique slug for the job title.
-     */
-    protected function generateUniqueSlug($title)
-    {
-        $slug = Str::slug($title);
-        $originalSlug = $slug;
-        $count = 1;
-
-        while (static::where('slug', $slug)->exists()) {
-            $slug = $originalSlug.'-'.$count++;
-        }
-
-        return $slug;
     }
 
     /**
