@@ -18,10 +18,11 @@ class PaymentController extends Controller
     }
 
     // Show payment form for featured job
-    public function create(Job $job)
+    public function create(Job $job, Request $request)
     {
         $this->authorize('update', $job);
-        return view('payments.create', compact('job'));
+        $intent = $request->user()->createSetupIntent();
+        return view('payments.create', compact('job', 'intent'));
     }
 
     // Process payment
@@ -39,7 +40,7 @@ class PaymentController extends Controller
         }
 
         try {
-            $payment = $user->charge(1000, $request->payment_method);
+            $payment = $user->charge(1000, $request->payment_method, ['description' => "Feature job: {$job->title}"]);
             $job->update(['is_featured' => true]);
 
             Payment::create([
