@@ -38,11 +38,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Job Seeker routes
     Route::middleware(['role:job_seeker'])->prefix('job-seeker')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'jobSeeker'])->name('job-seeker.dashboard');
+        Route::get('/job-alerts/create', [JobAlertController::class, 'create'])->name('job-alerts.create');
+        Route::post('/job-alerts', [JobAlertController::class, 'store'])->name('job-alerts.store');
+        Route::delete('/job-alerts/{jobAlert}', [JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
     });
 
-    // Employer (Company) routes
+    // Employer/Company routes
     Route::middleware(['role:employer'])->prefix('company')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'employer'])->name('company.dashboard');
+        Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
+        Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+        Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
+        Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
+        Route::put('/jobs/{job}/toggle-open', [JobController::class, 'toggleOpen'])->name('jobs.toggle-open');
+        Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
+        Route::get('/jobs/{job}/feature', [PaymentController::class, 'create'])->name('payments.create');
+        Route::post('/jobs/{job}/feature', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     });
 
     // Admin routes
@@ -64,34 +76,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/skills', [UserController::class, 'addSkills'])->name('skills.add');
     Route::delete('/skills', [UserController::class, 'removeSkills'])->name('skills.remove');
 
-    Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
-    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
-    Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
-    Route::put('/jobs/{job}', [JobController::class, 'update'])->name('jobs.update');
-    Route::put('/jobs/{job}/toggle-open', [JobController::class, 'toggleOpen'])->name('jobs.toggle-open');
-    Route::delete('/jobs/{job}', [JobController::class, 'destroy'])->name('jobs.destroy');
-
     Route::get('/jobs/{job}/apply', [ApplicationController::class, 'create'])->name('applications.create');
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->name('applications.store');
     Route::put('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->name('applications.update-status');
 
-    Route::get('/job-alerts/create', [JobAlertController::class, 'create'])->name('job-alerts.create');
-    Route::post('/job-alerts', [JobAlertController::class, 'store'])->name('job-alerts.store');
-    Route::delete('/job-alerts/{jobAlert}', [JobAlertController::class, 'destroy'])->name('job-alerts.destroy');
-
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::put('/notifications/{notification}', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-
-    // Route::get('/jobs/{job}/feature', [PaymentController::class, 'create'])->name('payments.create');
-    // Route::post('/jobs/{job}/feature', [PaymentController::class, 'store'])->name('payments.store');
-    // Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 });
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/subscribe', [SubscriptionController::class, 'show'])->name('subscribe');
     Route::post('/subscribe', [SubscriptionController::class, 'create'])->name('subscribe.create');
 
-    Route::middleware(['premium'])->group(function () {
+    Route::middleware(['premium', 'role:job_seeker'])->group(function () {
         Route::get('/auto-apply', [AutoApplyController::class, 'index'])->name('auto.apply');
         Route::post('/auto-apply/update', [AutoApplyController::class, 'update'])->name('auto.apply.update');
         Route::get('/auto-apply/toggle', [AutoApplyController::class, 'toggle'])->name('auto.apply.toggle');
