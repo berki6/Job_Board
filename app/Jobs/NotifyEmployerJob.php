@@ -42,8 +42,8 @@ class NotifyEmployerJob implements ShouldQueue
             $message = $this->message ?? "Job status updated: {$this->model->title}";
         }
 
-        Notification::send($this->employer, new EmployerNotification($message));
-    }
+        // Send notification via your custom channel
+        $this->employer->notify(new EmployerNotification($message));    }
 
     public function getEmployer()
     {

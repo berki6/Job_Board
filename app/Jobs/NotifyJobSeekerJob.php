@@ -34,7 +34,8 @@ class NotifyJobSeekerJob implements ShouldQueue
     public function handle(): void
     {
         $message = "Your application for {$this->application->job->title} has been {$this->application->status}";
-        Notification::send($this->jobSeeker, new JobSeekerNotification($message));
+        // Send notification via your custom channel
+        $this->jobSeeker->notify(new JobSeekerNotification($message));
     }
 
     public function getJobSeeker()

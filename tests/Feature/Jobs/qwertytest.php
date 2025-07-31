@@ -1,30 +1,46 @@
 <?php
 
+namespace Tests\Feature\Jobs;
+
 use App\Models\User;
 use App\Models\Job;
 use App\Models\Application;
-use App\Jobs\NotifyEmployerJob;
-use App\Jobs\NotifyJobSeekerJob;
 use App\Models\Category;
 use App\Models\JobType;
-use App\Notifications\EmployerNotification;
-use App\Notifications\JobSeekerNotification;
+use App\Jobs\NotifyEmployerJob;
+use App\Jobs\NotifyJobSeekerJob;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-describe('NotificationJob', function () {
+// Replace \App\Notifications\* with your actual notification classes your jobs dispatch
+use App\Notifications\EmployerNotification;
+use App\Notifications\JobSeekerNotification;
 
-    beforeEach(function () {
-        // // Seed roles
+class qwertytest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'employer']);
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'job_seeker']);
-        // Seed job types and categories
+        // Use firstOrCreate to avoid duplicate entry errors
         JobType::firstOrCreate(['name' => 'Full-time']);
-        Category::firstOrCreate(['name' => 'Engineering']);
-    });
+        Category::firstOrCreate(
+            ['name' => 'Engineering']
+        );
+    }
 
-    it('dispatches notify employer job and sends notification', function () {
+    // ----------- NotifyEmployerJob Tests -------------
+
+    /** @test */
+    public function it_dispatches_notify_employer_job_and_sends_notification()
+    {
         Queue::fake();
         Notification::fake();
 
@@ -40,21 +56,21 @@ describe('NotificationJob', function () {
 
         Queue::assertPushed(NotifyEmployerJob::class, function ($dispatchedJob) use ($employer, $job) {
             return $dispatchedJob->getEmployer()->id === $employer->id &&
-                   $dispatchedJob->getModel()->id === $job->id &&
-                   $dispatchedJob->getMessage() === 'Test job notification';
+                $dispatchedJob->getModel()->id === $job->id &&
+                $dispatchedJob->getMessage() === 'Test job notification';
         });
 
         Notification::assertSentTo($employer, EmployerNotification::class, function ($notification, $channels) {
-            return $notification->getMessage() === 'Test job notification';
+            return $notification->message === 'Test job notification';
         });
-    });
-    
-    it('dispatches NotifyEmployer job and stores notification', function () {
-        // Arrange: Set up Redis queue and fake notifications
+    }
+
+    /** @test */
+    public function it_dispatches_notify_employer_job_and_stores_notification_in_database()
+    {
         Queue::fake();
         Notification::fake();
 
-        // Create an employer and job
         $employer = User::factory()->create()->assignRole('employer');
         $job = Job::factory()->create([
             'user_id' => $employer->id,
@@ -63,7 +79,6 @@ describe('NotificationJob', function () {
             'category_id' => Category::where('name', 'Engineering')->first()->id,
         ]);
 
-        // Act: Dispatch the NotifyEmployer job
         NotifyEmployerJob::dispatch($employer, $job, 'Test job notification');
 
         Queue::assertPushed(NotifyEmployerJob::class);
@@ -75,65 +90,71 @@ describe('NotificationJob', function () {
         $jobInstance = new NotifyEmployerJob($employer, $job, 'Test job notification');
         $jobInstance->handle();
 
-        // Assert: Notification was stored in the database
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $employer->id,
             'notifiable_type' => User::class,
             'data' => json_encode(['message' => 'Test job notification']),
         ]);
-    });
+    }
 
-    it('dispatches NotifyJobSeeker job and sends notification', function () {
+    // ----------- NotifyJobSeekerJob Tests -------------
+
+    /** @test */
+    public function it_dispatches_notify_job_seeker_job_and_sends_notification()
+    {
         Queue::fake();
         Notification::fake();
 
         $jobSeeker = User::factory()->create()->assignRole('job_seeker');
         $employer = User::factory()->create()->assignRole('employer');
+
         $job = Job::factory()->create([
             'user_id' => $employer->id,
             'status' => 'published',
             'job_type_id' => JobType::where('name', 'Full-time')->first()->id,
             'category_id' => Category::where('name', 'Engineering')->first()->id,
         ]);
+
         $application = Application::factory()->create([
             'user_id' => $jobSeeker->id,
             'job_id' => $job->id,
-            'status' => 'approved'
+            'status' => 'pending',  // Use a valid status as per DB constraint
         ]);
 
         NotifyJobSeekerJob::dispatch($jobSeeker, $application);
 
-        Queue::assertPushed(NotifyJobSeekerJob::class, function ($dispatchedJob) use ($jobSeeker, $application) {
-            return $dispatchedJob->getJobSeeker()->id === $jobSeeker->id &&
-                   $dispatchedJob->getApplication()->id === $application->id;
+        Queue::assertPushed(NotifyJobSeekerJob::class, function ($job) use ($jobSeeker, $application) {
+            return $job->getJobSeeker()->id === $jobSeeker->id &&
+                $job->getApplication()->id === $application->id;
         });
 
         Notification::assertSentTo($jobSeeker, JobSeekerNotification::class, function ($notification, $channels) use ($application) {
             return $notification->message === "Your application for {$application->job->title} has been {$application->status}";
         });
-    });
+    }
 
-    it('dispatches NotifyJobSeeker job and stores notification', function () {
-        // Arrange: Set up Redis queue and fake notifications
+    /** @test */
+    public function it_dispatches_notify_job_seeker_job_and_stores_notification_in_database()
+    {
         Queue::fake();
         Notification::fake();
 
-        // Create a job seeker, employer, job, and application
         $jobSeeker = User::factory()->create()->assignRole('job_seeker');
         $employer = User::factory()->create()->assignRole('employer');
+
         $job = Job::factory()->create([
             'user_id' => $employer->id,
             'status' => 'published',
             'job_type_id' => JobType::where('name', 'Full-time')->first()->id,
             'category_id' => Category::where('name', 'Engineering')->first()->id,
         ]);
+
         $application = Application::factory()->create([
             'user_id' => $jobSeeker->id,
             'job_id' => $job->id,
-            'status' => 'approved'
+            'status' => 'pending',
         ]);
 
-        // Act: Dispatch the NotifyJobSeeker job
         NotifyJobSeekerJob::dispatch($jobSeeker, $application);
 
         Queue::assertPushed(NotifyJobSeekerJob::class);
@@ -143,11 +164,10 @@ describe('NotificationJob', function () {
         $jobInstance = new NotifyJobSeekerJob($jobSeeker, $application);
         $jobInstance->handle();
 
-        // Assert: Notification was stored in the database
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $jobSeeker->id,
             'notifiable_type' => User::class,
             'data' => json_encode(['message' => "Your application for {$application->job->title} has been {$application->status}"]),
         ]);
-    });
-});
+    }
+}
