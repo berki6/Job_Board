@@ -21,7 +21,7 @@ describe('AutoApplyService', function () {
         JobType::firstOrCreate(['name' => 'Contract']);
 
         // Verify seeding
-        if (! JobType::where('name', 'Full-time')->exists()) {
+        if (!JobType::where('name', 'Full-time')->exists()) {
             throw new Exception('Failed to seed Full-time JobType');
         }
 
@@ -78,7 +78,7 @@ describe('AutoApplyService', function () {
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -119,7 +119,7 @@ describe('AutoApplyService', function () {
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Backend Developer',
@@ -129,7 +129,7 @@ describe('AutoApplyService', function () {
             'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Frontend Developer',
@@ -167,7 +167,7 @@ describe('AutoApplyService', function () {
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -177,7 +177,7 @@ describe('AutoApplyService', function () {
             'status' => 'open',
         ]);
         Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -187,7 +187,7 @@ describe('AutoApplyService', function () {
             'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -223,7 +223,7 @@ describe('AutoApplyService', function () {
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -233,7 +233,7 @@ describe('AutoApplyService', function () {
             'status' => 'open',
         ]);
         $matchingJob = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -272,7 +272,7 @@ describe('AutoApplyService', function () {
 
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -305,7 +305,7 @@ describe('AutoApplyService', function () {
         ]);
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',
@@ -339,7 +339,7 @@ describe('AutoApplyService', function () {
         ]);
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         $job = Job::factory()->create([
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'job_type_id' => $jobType->id,
             'title' => 'Developer',

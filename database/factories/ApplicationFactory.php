@@ -14,8 +14,8 @@ class ApplicationFactory extends Factory
     public function definition(): array
     {
         return [
-            'job_id' => Job::factory(),
-            'user_id' => User::factory(),
+            'job_id' => Job::factory()->create()->id,
+            'user_id' => User::factory()->create()->assignRole('job_seeker')->id,
             'resume_path' => 'resumes/'.$this->faker->uuid().'.pdf',
             'cover_letter' => $this->faker->paragraph(4),
             'status' => 'pending',

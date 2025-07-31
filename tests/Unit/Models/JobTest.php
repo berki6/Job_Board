@@ -9,7 +9,7 @@ describe('Job Model', function () {
     it('can create a job', function () {
         $company = User::factory()->create(['name' => 'Test Company']);
         $job = Job::factory()->create([
-            'company_id' => $company->id,
+            'user_id' => $company->id,
             'title' => 'Senior Developer',
             'description' => 'Great opportunity for a senior developer',
             'location' => 'Remote',
@@ -31,7 +31,7 @@ describe('Job Model', function () {
 
     it('belongs to a company', function () {
         $company = User::factory()->create(['name' => 'Test Company']);
-        $job = Job::factory()->create(['company_id' => $company->id]);
+        $job = Job::factory()->create(['user_id' => $company->id]);
 
         expect($job->company)->toBeInstanceOf(User::class)
             ->and($job->company->name)->toBe('Test Company');

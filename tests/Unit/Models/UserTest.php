@@ -52,7 +52,7 @@ describe('User Model', function () {
 
     it('has jobs relationship for companies', function () {
         $company = User::factory()->create(['name' => 'Test Company']);
-        $job = Job::factory()->create(['company_id' => $company->id]);
+        $job = Job::factory()->create(['user_id' => $company->id]);
 
         expect($company->jobs)->toHaveCount(1)
             ->and($company->jobs->first())->toBeInstanceOf(Job::class);

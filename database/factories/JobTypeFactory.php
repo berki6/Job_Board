@@ -20,7 +20,7 @@ class JobTypeFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->randomElement(['Full-time', 'Part-time', 'Contract']),
+            'name' => $this->faker->randomElement(['Full-time', 'Part-time', 'Remote']),
         ];
     }
 }

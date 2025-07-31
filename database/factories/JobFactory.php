@@ -7,6 +7,7 @@ use App\Models\Job;
 use App\Models\JobType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class JobFactory extends Factory
 {
@@ -14,17 +15,24 @@ class JobFactory extends Factory
 
     public function definition(): array
     {
-        $jobType = JobType::firstOrCreate(['name' => 'Full-time']);
+        $title = $this->faker->jobTitle();
 
         return [
-            'company_id' => User::factory()->create()->id,
+            'user_id' => User::factory()->create()->assignRole('employer')->id,
+            'job_type_id' => JobType::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
-            'job_type_id' => $jobType->id,
             'title' => $this->faker->jobTitle(),
             'description' => $this->faker->paragraph(5),
             'location' => $this->faker->randomElement(['Remote', 'New York', 'San Francisco', 'London', 'Berlin']),
-            'salary' => $this->faker->numberBetween(40000, 150000),
-            'status' => 'open',
+            'salary_min' => $this->faker->numberBetween(40000, 150000),
+            'salary_max' => $this->faker->numberBetween(40000, 150000),
+            'remote' => $this->faker->boolean(),
+            'status' => 'published',
+            'is_open' => true,
+            'is_featured' => false,
+            'application_method' => 'form',
+            'external_link' => null,
+            'slug' => Str::slug($title),
         ];
     }
 

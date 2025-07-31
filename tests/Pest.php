@@ -77,7 +77,7 @@ function createJob($attributes = [])
     $company = createUser(['name' => 'Test Company']);
 
     return \App\Models\Job::factory()->create(array_merge([
-        'company_id' => $company->id,
+        'user_id' => $company->id,
         'title' => 'Software Developer',
         'description' => 'Great job opportunity',
         'location' => 'Remote',
