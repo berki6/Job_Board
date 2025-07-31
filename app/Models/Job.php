@@ -124,8 +124,8 @@ class Job extends Model
         return $this->belongsTo(JobType::class, 'job_type_id');
     }
 
-    // public function rejections()
-    // {
-    //     return $this->hasMany(JobRejection::class);
-    // }
+    public function rejections()
+    {
+        return $this->hasMany(JobRejection::class);
+    }
 }
