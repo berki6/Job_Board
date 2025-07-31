@@ -44,4 +44,20 @@ class NotifyEmployerJob implements ShouldQueue
 
         Notification::send($this->employer, new EmployerNotification($message));
     }
+
+    public function getEmployer()
+    {
+        return $this->employer;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function getMessage()
+    {
+        return $this->message;
+    }
+    
 }
