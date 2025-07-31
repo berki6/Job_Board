@@ -9,16 +9,20 @@ use App\Models\Category;
 use App\Models\JobType;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 
 describe('NotificationJob', function () {
 
     beforeEach(function () {
         // // Seed roles
-        // \Spatie\Permission\Models\Role::create(['name' => 'employer']);
-        // \Spatie\Permission\Models\Role::create(['name' => 'job_seeker']);
+        \Spatie\Permission\Models\Role::create(['name' => 'employer']);
+        \Spatie\Permission\Models\Role::create(['name' => 'job_seeker']);
         // Seed job types and categories
-        JobType::factory()->create(['name' => 'Full-time']);
-        Category::factory()->create(['name' => 'Engineering']);
+        JobType::firstOrCreate(['name' => 'Full-time']);
+        Category::updateOrCreate(
+            ['name' => 'Engineering'],
+            ['slug' => Str::slug('Engineering')]
+        );
     });
 
     it('dispatches NotifyEmployer job and stores notification', function () {
@@ -39,10 +43,10 @@ describe('NotificationJob', function () {
         NotifyEmployerJob::dispatch($employer, $job, 'Test job notification');
 
         // Assert: Job was pushed to Redis queue
-        Queue::assertPushed(NotifyEmployerJob::class, function ($job) use ($employer, $job) {
-            return $job->employer->id === $employer->id &&
-                $job->model->id === $job->id &&
-                $job->message === 'Test job notification';
+        Queue::assertPushed(NotifyEmployerJob::class, function ($dispatchedJob) use ($employer, $job) {
+            return $dispatchedJob->employer->id === $employer->id &&
+                $dispatchedJob->model->id === $job->id &&
+                $dispatchedJob->message === 'Test job notification';
         });
 
         // Simulate queue processing
@@ -83,8 +87,8 @@ describe('NotificationJob', function () {
         NotifyJobSeekerJob::dispatch($jobSeeker, $application);
 
         // Assert: Job was pushed to Redis queue
-        Queue::assertPushed(NotifyJobSeekerJob::class, function ($job) use ($jobSeeker, $application) {
-            return $job->jobSeeker->id === $jobSeeker->id && $job->application->id === $application->id;
+        Queue::assertPushed(NotifyJobSeekerJob::class, function ($dispatchedJob) use ($jobSeeker, $application) {
+            return $dispatchedJob->jobSeeker->id === $jobSeeker->id && $dispatchedJob->application->id === $application->id;
         });
 
         // Simulate queue processing
