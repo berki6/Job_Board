@@ -19,7 +19,7 @@ class JobFactory extends Factory
 
         return [
             'user_id' => User::factory()->create()->assignRole('employer')->id,
-            'job_type_id' => JobType::firstOrCreate(['name' => 'Full-time'])->id,
+            'job_type_id' => JobType::factory()->create()->id,
             'category_id' => Category::factory()->create()->id,
             'title' => $this->faker->jobTitle(),
             'description' => $this->faker->paragraph(5),

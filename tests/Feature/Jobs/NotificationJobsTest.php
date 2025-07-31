@@ -21,7 +21,7 @@ describe('NotificationJob', function () {
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'job_seeker']);
         // Seed job types and categories
         JobType::firstOrCreate(['name' => 'Full-time']);
-        Category::firstOrCreate(['name' => 'Engineering']);
+        Category::firstOrCreate(['name' => 'Engineering'], ['slug' => Str::slug('Engineering')]);
     });
 
     it('dispatches notify employer job and sends notification', function () {
@@ -45,7 +45,7 @@ describe('NotificationJob', function () {
         });
 
         Notification::assertSentTo($employer, EmployerNotification::class, function ($notification, $channels) {
-            return $notification->getMessage() === 'Test job notification';
+            return $notification->message === 'Test job notification';
         });
     });
     

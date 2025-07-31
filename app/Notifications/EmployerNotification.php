@@ -29,7 +29,7 @@ class EmployerNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return [\App\Channels\CustomDatabaseChannel::class];
+        return ['database'];
     }
 
     // /**
@@ -46,35 +46,22 @@ class EmployerNotification extends Notification
     /**
      * Get the database representation of the notification.
      */
-    // public function toDatabase(object $notifiable)
-    // {
-    //     return new DatabaseMessage([
-    //         'message' => $this->message,
-    //     ]);
-    // }
-
-    // /**
-    //  * Get the array representation of the notification.
-    //  *
-    //  * @return array<string, mixed>
-    //  */
-    // public function toArray(object $notifiable): array
-    // {
-    //     return [
-    //         'message' => $this->message,
-    //     ];
-    // }
-
-    /**
-     * Return the message for custom database channel.
-     */
-    public function toCustomDatabase($notifiable)
+    public function toDatabase(object $notifiable)
     {
-        return $this->message;
+        return new DatabaseMessage([
+            'message' => $this->message,
+        ]);
     }
 
-    public function getMessage(): string
+    /**
+     * Get the array representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(object $notifiable): array
     {
-        return $this->message;
+        return [
+            'message' => $this->message,
+        ];
     }
 }
