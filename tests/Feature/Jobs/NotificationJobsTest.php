@@ -19,10 +19,7 @@ describe('NotificationJob', function () {
         \Spatie\Permission\Models\Role::create(['name' => 'job_seeker']);
         // Seed job types and categories
         JobType::firstOrCreate(['name' => 'Full-time']);
-        Category::updateOrCreate(
-            ['name' => 'Engineering'],
-            ['slug' => Str::slug('Engineering')]
-        );
+        Category::firstOrCreate(['name' => 'Engineering'], ['slug' => Str::slug('Engineering')]);
     });
 
     it('dispatches NotifyEmployer job and stores notification', function () {
@@ -80,7 +77,7 @@ describe('NotificationJob', function () {
         $application = Application::factory()->create([
             'user_id' => $jobSeeker->id,
             'job_id' => $job->id,
-            'status' => 'reviewed',
+            'status' => 'approved'
         ]);
 
         // Act: Dispatch the NotifyJobSeeker job
@@ -88,7 +85,7 @@ describe('NotificationJob', function () {
 
         // Assert: Job was pushed to Redis queue
         Queue::assertPushed(NotifyJobSeekerJob::class, function ($dispatchedJob) use ($jobSeeker, $application) {
-            return $dispatchedJob->jobSeeker->id === $jobSeeker->id && $dispatchedJob->application->id === $application->id;
+            return $dispatchedJob->getJobSeeker()->id === $jobSeeker->id && $dispatchedJob->getApplication()->id === $application->id;
         });
 
         // Simulate queue processing

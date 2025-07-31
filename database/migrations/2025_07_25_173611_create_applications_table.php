@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('resume_path');
             $table->text('cover_letter')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
             $table->index(['job_id', 'user_id', 'status']);
             $table->unique(['job_id', 'user_id']); // Prevent duplicate applications
