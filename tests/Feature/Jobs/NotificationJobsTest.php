@@ -44,9 +44,9 @@ describe('NotificationJob', function () {
 
         // Assert: Job was pushed to Redis queue
         Queue::assertPushed(NotifyEmployerJob::class, function ($dispatchedJob) use ($employer, $job) {
-            return $dispatchedJob->employer->id === $employer->id &&
-                $dispatchedJob->model->id === $job->id &&
-                $dispatchedJob->message === 'Test job notification';
+            return $dispatchedJob->getEmployer()->id === $employer->id &&
+                $dispatchedJob->getModel()->id === $job->id &&
+                $dispatchedJob->getMessage() === 'Test job notification';
         });
 
         // Simulate queue processing
