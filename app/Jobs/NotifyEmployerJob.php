@@ -36,6 +36,12 @@ class NotifyEmployerJob implements ShouldQueue
      */
     public function handle(): void
     {
-        //
+        if ($this->model instanceof Application) {
+            $message = $this->message ?? "New application received for {$this->model->job->title}";
+        } elseif ($this->model instanceof Job) {
+            $message = $this->message ?? "Job status updated: {$this->model->title}";
+        }
+
+        Notification::send($this->employer, new EmployerNotification($message));
     }
 }
