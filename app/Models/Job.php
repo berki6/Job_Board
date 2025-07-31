@@ -40,10 +40,14 @@ class Job extends Model
     public function toSearchableArray()
     {
         return [
+            'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'location' => $this->location,
-            'is_open' => $this->is_open, // Include in search for filtering
+            'category' => $this->category->name ?? '',
+            'job_type' => $this->jobType->name ?? '',
+            'status' => $this->status,
+            'is_open' => $this->is_open,
         ];
     }
 
