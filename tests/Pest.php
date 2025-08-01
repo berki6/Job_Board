@@ -81,8 +81,9 @@ function createJob($attributes = [])
         'title' => 'Software Developer',
         'description' => 'Great job opportunity',
         'location' => 'Remote',
-        'salary' => 75000,
-        'status' => 'open',
+        'salary_min' => 80000,
+        'salary_max' => 90000,
+        'status' => 'published',
     ], $attributes));
 }
 // Helper function to create an application

@@ -5,22 +5,30 @@ use App\Models\Category;
 use App\Models\Job;
 use App\Models\User;
 
+beforeEach(function () {
+    // Seed roles
+    \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'employer', 'guard_name' => 'web']);
+    \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'job_seeker', 'guard_name' => 'web']);
+});
+
 describe('Job Model', function () {
     it('can create a job', function () {
-        $company = User::factory()->create(['name' => 'Test Company']);
+        $company = User::factory()->create(['name' => 'Test Company'])->assignRole('employer');
         $job = Job::factory()->create([
             'user_id' => $company->id,
             'title' => 'Senior Developer',
             'description' => 'Great opportunity for a senior developer',
             'location' => 'Remote',
-            'salary' => 90000,
-            'status' => 'open',
+            'salary_min' => 80000,
+            'salary_max' => 90000,
+            'status' => 'published',
         ]);
 
         expect($job->title)->toBe('Senior Developer')
             ->and($job->location)->toBe('Remote')
-            ->and($job->salary)->toBe('90000.00')
-            ->and($job->status)->toBe('open');
+            ->and((float) $job->salary_min)->toBe(80000.0)
+            ->and((float) $job->salary_max)->toBe(90000.0)
+            ->and($job->status)->toBe('published');
     });
 
     it('uses the correct table name', function () {

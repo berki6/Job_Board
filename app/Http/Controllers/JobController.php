@@ -30,7 +30,7 @@ class JobController extends Controller
         $jobs = Cache::remember('jobs_page_'.$request->page, 3600, function () {
             return Job::where('status', 'published')
                 ->where('is_open', true)
-                ->with(['user.profile', 'jobType', 'category'])
+                ->with(['user.profile', 'jobType', 'category'])->latest()
                 ->paginate(20);
         });
 

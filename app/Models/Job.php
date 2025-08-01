@@ -32,7 +32,6 @@ class Job extends Model
     ];
 
     protected $casts = [
-        'salary' => 'decimal:2',
         'salary_min' => 'decimal:2',
         'salary_max' => 'decimal:2',
     ];
