@@ -12,7 +12,7 @@ class JobSeekerNotification extends Notification
 {
     use Queueable;
 
-    protected $message;
+    public $message;
 
     /**
      * Create a new notification instance.
@@ -62,7 +62,7 @@ class JobSeekerNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => $this->message,
         ];
     }
 }

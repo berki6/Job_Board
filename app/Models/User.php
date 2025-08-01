@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Notifications\Notification;
 use Laravel\Cashier\Billable;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -24,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
         'is_banned',
         'email_verified_at',
         'stripe_id',
@@ -105,11 +105,6 @@ class User extends Authenticatable
     public function jobAlerts()
     {
         return $this->hasMany(JobAlert::class);
-    }
-
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
     }
 
     public function payments()

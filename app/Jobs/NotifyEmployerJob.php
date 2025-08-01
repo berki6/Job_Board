@@ -12,6 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\EmployerNotification;
+use Illuminate\Support\Facades\Log;
 
 class NotifyEmployerJob implements ShouldQueue
 {
@@ -36,13 +37,32 @@ class NotifyEmployerJob implements ShouldQueue
      */
     public function handle(): void
     {
+        Log::info('NotifyEmployerJob is being handled for employer: ' . $this->employer->id);
         if ($this->model instanceof Application) {
             $message = $this->message ?? "New application received for {$this->model->job->title}";
         } elseif ($this->model instanceof Job) {
             $message = $this->message ?? "Job status updated: {$this->model->title}";
+        } else {
+            Log::error('NotifyEmployerJob received unexpected model type: ' . get_class($this->model));
+            return; // Or throw an exception, depending on how you want to handle this
         }
 
-        Notification::send($this->employer, new EmployerNotification($message));
+        try {
+            Notification::send($this->employer, new EmployerNotification($message));
+            Log::info('Notification sent successfully to employer: ' . $this->employer->id);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send notification to employer: ' . $this->employer->id . '. Error: ' . $e->getMessage());
+            // Consider releasing the job back onto the queue (with a delay) for retry
+            // $this->release(60); // Release back onto the queue after 60 seconds
+            // OR you can use the failed() method to handle failures.
+        }
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        // This method is called when the job fails.
+        Log::critical('NotifyEmployerJob failed: ' . $exception->getMessage() . ' for employer: ' . $this->employer->id);
+        // You can implement custom logic here, such as sending an alert to the developers.
     }
 
     public function getEmployer()

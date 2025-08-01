@@ -12,7 +12,7 @@ class EmployerNotification extends Notification
 {
     use Queueable;
 
-    protected $message;
+    public $message;
 
     /**
      * Create a new notification instance.
@@ -49,7 +49,7 @@ class EmployerNotification extends Notification
     public function toDatabase(object $notifiable)
     {
         return new DatabaseMessage([
-            'message' => $this->message,
+            'data' => ['message' => $this->message],
         ]);
     }
 

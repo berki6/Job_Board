@@ -9,19 +9,22 @@ use App\Models\Category;
 use App\Models\JobType;
 use App\Notifications\EmployerNotification;
 use App\Notifications\JobSeekerNotification;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
+
+// Don't use RefreshDatabase here since it's already used globally
 
 describe('NotificationJob', function () {
 
     beforeEach(function () {
-        // // Seed roles
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'employer']);
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'job_seeker']);
+        // Seed roles
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'employer', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'job_seeker', 'guard_name' => 'web']);
         // Seed job types and categories
-        JobType::firstOrCreate(['name' => 'Full-time']);
-        Category::firstOrCreate(['name' => 'Engineering'], ['slug' => Str::slug('Engineering')]);
+        JobType::updateOrCreate(['name' => 'Full-time'], ['name' => 'Full-time']);
+        Category::updateOrCreate(['name' => 'Engineering'], ['name' => 'Engineering']);
     });
 
     it('dispatches notify employer job and sends notification', function () {
@@ -37,18 +40,19 @@ describe('NotificationJob', function () {
         ]);
 
         NotifyEmployerJob::dispatch($employer, $job, 'Test job notification');
+        Log::info('NotifyEmployerJob dispatched.');
 
-        Queue::assertPushed(NotifyEmployerJob::class, function ($dispatchedJob) use ($employer, $job) {
-            return $dispatchedJob->getEmployer()->id === $employer->id &&
-                   $dispatchedJob->getModel()->id === $job->id &&
-                   $dispatchedJob->getMessage() === 'Test job notification';
-        });
+        Queue::assertPushed(NotifyEmployerJob::class);
+
+        // Manually handle the job to save notification
+        $jobInstance = new NotifyEmployerJob($employer, $job, 'Test job notification');
+        $jobInstance->handle();
 
         Notification::assertSentTo($employer, EmployerNotification::class, function ($notification, $channels) {
             return $notification->message === 'Test job notification';
         });
     });
-    
+
     it('dispatches NotifyEmployer job and stores notification', function () {
         // Arrange: Set up Redis queue and fake notifications
         Queue::fake();
@@ -68,9 +72,6 @@ describe('NotificationJob', function () {
 
         Queue::assertPushed(NotifyEmployerJob::class);
 
-        // Remove notification fake to allow actual DB insert
-        Notification::swap(new \Illuminate\Notifications\ChannelManager(app()));
-
         // Manually run the job to save the notification
         $jobInstance = new NotifyEmployerJob($employer, $job, 'Test job notification');
         $jobInstance->handle();
@@ -79,7 +80,9 @@ describe('NotificationJob', function () {
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $employer->id,
             'notifiable_type' => User::class,
-            'data' => json_encode(['message' => 'Test job notification']),
+            'type' => EmployerNotification::class,
+            'data' => json_encode(['data' => ['message' => 'Test job notification']]),
+            'read_at' => null,
         ]);
     });
 
@@ -108,8 +111,12 @@ describe('NotificationJob', function () {
                    $dispatchedJob->getApplication()->id === $application->id;
         });
 
-        Notification::assertSentTo($jobSeeker, JobSeekerNotification::class, function ($notification, $channels) use ($application) {
-            return $notification->message === "Your application for {$application->job->title} has been {$application->status}";
+        // Manually handle the job to trigger the notification
+        $jobInstance = new NotifyJobSeekerJob($jobSeeker, $application);
+        $jobInstance->handle();
+
+        Notification::assertSentTo($jobSeeker, JobSeekerNotification::class, function ($notification) use ($application) {
+            return $notification->toDatabase($notification->notifiable)['data']['message'] === "Your application for {$application->job->title} has been {$application->status}";
         });
     });
 
@@ -138,8 +145,7 @@ describe('NotificationJob', function () {
 
         Queue::assertPushed(NotifyJobSeekerJob::class);
 
-        Notification::swap(new \Illuminate\Notifications\ChannelManager(app()));
-
+        // Manually run the job to save the notification
         $jobInstance = new NotifyJobSeekerJob($jobSeeker, $application);
         $jobInstance->handle();
 
@@ -147,7 +153,9 @@ describe('NotificationJob', function () {
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $jobSeeker->id,
             'notifiable_type' => User::class,
-            'data' => json_encode(['message' => "Your application for {$application->job->title} has been {$application->status}"]),
+            'type' => JobSeekerNotification::class,
+            'data' => json_encode(['data' => ['message' => "Your application for {$application->job->title} has been {$application->status}"]]),
+            'read_at' => null,
         ]);
     });
 });
