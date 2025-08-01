@@ -21,7 +21,9 @@ class DashboardController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        $this->authorize('view-job-seeker-dashboard', $user);
+        if (!$user->can('view_job_seeker_dashboard')) {
+            abort(403, 'Unauthorized');
+        }
 
         $profile = $user->profile;
         $skills = $user->skills;
@@ -37,7 +39,9 @@ class DashboardController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        $this->authorize('view-employer-dashboard', $user);
+        if (!$user->can('view_employer_dashboard')) {
+            abort(403, 'Unauthorized');
+        }
 
         $jobs = $user->jobs()->with(['jobType', 'category'])->get();
         $applications = Application::whereHas('job', function ($query) use ($user) {
@@ -56,7 +60,10 @@ class DashboardController extends Controller
     // Admin dashboard
     public function admin(Request $request)
     {
-        $this->authorize('view-admin-dashboard', $request->user());
+        $user = $request->user();
+        if (!$user->can('view_admin_dashboard')) {
+            abort(403, 'Unauthorized');
+        }
 
         $stats = [
             'total_jobs' => Job::count(),

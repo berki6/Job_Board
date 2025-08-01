@@ -6,7 +6,6 @@ use App\Models\Application;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ApplicationController extends Controller
@@ -19,8 +18,12 @@ class ApplicationController extends Controller
     // Show application form
     public function create(Job $job)
     {
-        $this->authorize('apply_jobs', Auth::user());
-        if (! $job->is_open) {
+        $user = request()->user();
+        if (!$user->hasPermissionTo('apply_jobs', 'web')) {
+            // deny access
+            abort(403, 'Unauthorized');
+        }
+        if (!$job->is_open) {
             return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
         }
 
@@ -30,10 +33,13 @@ class ApplicationController extends Controller
     // Submit application
     public function store(Request $request, Job $job)
     {
-        $user = Auth::user();
-        $this->authorize('apply_jobs', $user);
+        $user = $request->user();
+        if (!$user->hasPermissionTo('apply_jobs', 'web')) {
+            // deny access
+            abort(403, 'Unauthorized');
+        }
 
-        if (! $job->is_open) {
+        if (!$job->is_open) {
             return redirect()->route('jobs.show', $job->slug)->with('error', 'Job is closed');
         }
 
@@ -47,6 +53,7 @@ class ApplicationController extends Controller
         }
 
         $application = $job->applications()->create([
+            'job_id' => $job->id,
             'user_id' => $user->id,
             'resume_path' => $request->file('resume')->store('resumes', 'public'),
             'cover_letter' => $request->cover_letter,
@@ -55,13 +62,17 @@ class ApplicationController extends Controller
 
         \App\Jobs\NotifyEmployerJob::dispatch($job->user, $application);
 
-        return redirect()->route('dashboard.job-seeker')->with('success', 'Application submitted');
+        return redirect()->route('job-seeker.dashboard')->with('success', 'Application submitted');
     }
 
     // Update application status
     public function updateStatus(Request $request, Application $application)
     {
-        $this->authorize('update', $application);
+        $user = $request->user();
+        if (!$user->hasPermissionTo('update', 'web')) {
+            // deny access
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,reviewed,rejected',
@@ -74,6 +85,6 @@ class ApplicationController extends Controller
         $application->update(['status' => $request->status]);
         \App\Jobs\NotifyJobSeekerJob::dispatch($application->user, $application);
 
-        return redirect()->route('dashboard.employer')->with('success', 'Application status updated');
+        return redirect()->route('employer.dashboard')->with('success', 'Application status updated');
     }
 }

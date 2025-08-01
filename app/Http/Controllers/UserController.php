@@ -42,7 +42,9 @@ class UserController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
-        $this->authorize('update-profile', $user);
+        if (!$user->can('update-profile')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'bio' => 'nullable|string|max:1000',
@@ -103,7 +105,9 @@ class UserController extends Controller
     public function editSkills(Request $request)
     {
         $user = $request->user();
-        $this->authorize('update-skills', $user);
+        if (!$user->can('update-skills')) {
+            abort(403, 'Unauthorized');
+        }
         $skills = Skill::all();
         $userSkills = $user->skills->pluck('name')->toArray();
 
@@ -114,7 +118,9 @@ class UserController extends Controller
     public function addSkills(Request $request)
     {
         $user = $request->user();
-        $this->authorize('update-skills', $user);
+        if (!$user->can('update-skills')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'skills' => 'required|array',
@@ -134,7 +140,9 @@ class UserController extends Controller
     public function removeSkills(Request $request)
     {
         $user = $request->user();
-        $this->authorize('update-skills', $user);
+        if (!$user->can('update-skills')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'skills' => 'required|array',

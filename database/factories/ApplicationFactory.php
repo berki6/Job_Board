@@ -22,10 +22,10 @@ class ApplicationFactory extends Factory
         ];
     }
 
-    public function accepted(): static
+    public function approved(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'accepted',
+            'status' => 'approved',
         ]);
     }
 

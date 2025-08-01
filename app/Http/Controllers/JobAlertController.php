@@ -20,7 +20,10 @@ class JobAlertController extends Controller
     // Show job alert creation form
     public function create()
     {
-        $this->authorize('create-job-alert', Auth::user());
+        $user = request()->user();
+        if (!$user->can('create-job-alert')) {
+            abort(403, 'Unauthorized');
+        }
         $categories = Category::all();
         $jobTypes = JobType::all();
 
@@ -30,9 +33,10 @@ class JobAlertController extends Controller
     // Create job alert
     public function store(Request $request)
     {
-        // $user = Auth::user();
         $user = $request->user();
-        $this->authorize('create-job-alert', $user);
+        if (!$user->can('create-job-alert')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'keywords' => 'nullable|string|max:255',
@@ -60,7 +64,10 @@ class JobAlertController extends Controller
     // Delete job alert
     public function destroy(JobAlert $jobAlert)
     {
-        $this->authorize('delete-job-alert', $jobAlert);
+        $user = request()->user();
+        if (!$user->can('delete-job-alert', $jobAlert)) {
+            abort(403, 'Unauthorized');
+        }
         $jobAlert->delete();
 
         return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert deleted');
