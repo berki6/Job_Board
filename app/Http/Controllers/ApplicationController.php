@@ -38,8 +38,8 @@ class ApplicationController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'resume' => 'required|file|mimes:pdf|max:5120',
-            'cover_letter' => 'nullable|string|max:2000',
+            'resume' => ['required', 'file', 'mimes:pdf', 'max:2048'],
+            'cover_letter' => ['nullable', 'string']
         ]);
 
         if ($validator->fails()) {
