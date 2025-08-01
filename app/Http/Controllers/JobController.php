@@ -59,9 +59,11 @@ class JobController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function create()
+    public function create(Request $request)
     {
-        $this->authorize('create_jobs', Auth::user());
+        if (!$request->user()->can('create_jobs')) {
+            abort(403, 'Unauthorized');
+        }
         $categories = Category::all();
         $jobTypes = JobType::all();
 
@@ -73,7 +75,9 @@ class JobController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        $this->authorize('create_jobs', $user);
+        if (!$user->can('create_jobs')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
@@ -113,9 +117,11 @@ class JobController extends Controller
     }
 
     // Show job edit form
-    public function edit(Job $job)
+    public function edit(Job $job, Request $request)
     {
-        $this->authorize('edit_jobs', $job);
+        if (!$request->user()->can('edit_jobs')) {
+            abort(403, 'Unauthorized');
+        }
         $categories = Category::all();
         $jobTypes = JobType::all();
 
@@ -125,7 +131,9 @@ class JobController extends Controller
     // Update job
     public function update(Request $request, Job $job)
     {
-        $this->authorize('edit_jobs', $job);
+        if (!$request->user()->can('edit_jobs')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'title' => 'string|max:255',
@@ -163,7 +171,9 @@ class JobController extends Controller
     // Toggle is_open status
     public function toggleOpen(Request $request, Job $job)
     {
-        $this->authorize('update', $job);
+        if (!$request->user()->can('update')) {
+            abort(403, 'Unauthorized');
+        }
 
         $validator = Validator::make($request->all(), [
             'is_open' => 'required|boolean',
@@ -182,7 +192,9 @@ class JobController extends Controller
     // Delete job
     public function destroy(Job $job)
     {
-        $this->authorize('delete_jobs', $job);
+        if (!$job->user->can('delete_jobs')) {
+            abort(403, 'Unauthorized');
+        }
         $job->delete();
         Cache::forget('jobs_page_'.request()->page);
 
