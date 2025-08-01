@@ -34,6 +34,7 @@ class Job extends Model
     protected $casts = [
         'salary_min' => 'decimal:2',
         'salary_max' => 'decimal:2',
+        'is_open' => 'boolean',
     ];
 
     public function toSearchableArray()
@@ -72,7 +73,7 @@ class Job extends Model
 
         static::creating(function ($job) {
             $job->slug = $job->generateUniqueSlug($job->title);
-            $job->is_open = true; // Default to open
+            // $job->is_open = true; // Default to open
         });
 
         static::updating(function ($job) {

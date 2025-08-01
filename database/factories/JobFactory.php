@@ -18,9 +18,9 @@ class JobFactory extends Factory
         $title = $this->faker->jobTitle();
 
         return [
-            'user_id' => User::factory()->create()->assignRole('employer')->id,
-            'job_type_id' => JobType::factory()->create()->id,
-            'category_id' => Category::factory()->create()->id,
+            'user_id' => User::factory(),
+            'job_type_id' => JobType::factory(),
+            'category_id' => Category::factory(),
             'title' => $this->faker->jobTitle(),
             'description' => $this->faker->paragraph(5),
             'location' => $this->faker->randomElement(['Remote', 'New York', 'San Francisco', 'London', 'Berlin']),
@@ -38,15 +38,18 @@ class JobFactory extends Factory
 
     public function closed(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'closed',
+        return $this->state(fn(array $attributes) => [
+            'is_open' => tap(false, function ($isOpen) {
+                dump("Setting is_open to: " . ($isOpen ? 'true' : 'false'));
+            }),
         ]);
     }
 
     public function withSalaryRange(int $min, int $max): static
     {
-        return $this->state(fn (array $attributes) => [
-            'salary' => $this->faker->numberBetween($min, $max),
+        return $this->state(fn(array $attributes) => [
+            'salary_min' => $min,
+            'salary_max' => $max,
         ]);
     }
 }

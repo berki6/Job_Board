@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('saved_jobs', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('job_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('job_id')->constrained('jobs_listing', 'id')->cascadeOnDelete();
             $table->primary(['user_id', 'job_id']);
             $table->timestamps();
         });
