@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -27,28 +28,47 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:job_seeker,employer'],
-        ]);
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'user_role' => ['required', 'in:job_seeker,employer'],
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
 
-        $user->assignRole($request->role);
+            if (!$user) {
+                Log::error('User creation failed', ['request' => $request->all()]);
+                return back()->withErrors(['email' => 'User creation failed.']);
+            }
 
-        event(new Registered($user));
+            $user->assignRole($request->user_role);
 
-        Auth::login($user);
+            event(new Registered($user));
 
-        return redirect(route('dashboard', absolute: false));
+            Auth::login($user);
+
+            if (!Auth::check()) {
+                Log::error('Login failed after user creation', ['user_id' => $user->id]);
+                return back()->withErrors(['email' => 'Login failed after registration.']);
+            }
+
+            // Redirect based on user role
+            if ($request->user_role === 'job_seeker') {
+                return redirect()->route('job-seeker.dashboard'); // Redirect to job seeker dashboard
+            } elseif ($request->user_role === 'employer') {
+                return redirect()->route('employer.dashboard'); // Redirect to employer dashboard
+            }
+        } catch (\Exception $e) {
+            Log::error('Registration error', ['error' => $e->getMessage(), 'request' => $request->all()]);
+            return back()->withErrors(['email' => 'An error occurred during registration.']);
+        }
     }
 }

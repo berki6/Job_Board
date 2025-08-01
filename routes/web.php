@@ -47,7 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Employer/Company routes
     Route::middleware(['role:employer'])->prefix('company')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'employer'])->name('company.dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'employer'])->name('employer.dashboard');
         Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
         Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
         Route::get('/jobs/{job}/edit', [JobController::class, 'edit'])->name('jobs.edit');
