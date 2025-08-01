@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -22,11 +21,10 @@ class NotificationController extends Controller
     }
 
     // Mark notification as read
-    public function markAsRead(Notification $notification)
+    public function markAsRead(Request $request, $notification)
     {
-        $this->authorize('read_notification', $notification);
-        $notification->update(['read' => true]);
-
-        return redirect()->route('notifications.index')->with('success', 'Notification marked as read');
+        $notification = $request->user()->notifications()->findOrFail($notification);
+        $notification->markAsRead();
+        return redirect()->route('notifications.index')->with('success', 'Notification marked as read.');
     }
 }
