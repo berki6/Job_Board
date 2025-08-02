@@ -131,6 +131,9 @@ describe('Job Model', function () {
     it('can be searched by title', function () {
         $job1 = Job::factory()->create(['title' => 'Software Engineer']);
         $job2 = Job::factory()->create(['title' => 'Data Scientist']);
+        // Make sure the search index is up-to-date
+        $job1->searchable();
+        $job2->searchable();
 
         $searchResults = Job::search('Software')->get();
 
