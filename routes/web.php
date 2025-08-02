@@ -78,9 +78,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/skills', [UserController::class, 'addSkills'])->name('skills.add');
     Route::delete('/skills', [UserController::class, 'removeSkills'])->name('skills.remove');
 
+    Route::get('/applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
     Route::get('/jobs/{job}/apply', [ApplicationController::class, 'create'])->name('applications.create');
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store'])->name('applications.store');
-    Route::put('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->name('applications.update-status');
+    Route::get('/applications/{application}/edit', [ApplicationController::class, 'edit'])->name('applications.edit');
+    Route::patch('/applications/{application}', [ApplicationController::class, 'update'])->name('applications.update');
+    Route::patch('/applications/{application}/status', [ApplicationController::class, 'updateStatus'])->name('applications.update-status');
+    Route::delete('/applications/{job}/{application}', [ApplicationController::class, 'destroy'])->name('applications.destroy');
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::put('/notifications/{notification}', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');

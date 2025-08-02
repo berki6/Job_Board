@@ -18,7 +18,7 @@ class Application extends Model
     ];
 
     protected $casts = [
-        'applied_at' => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     /**
