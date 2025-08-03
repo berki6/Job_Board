@@ -50,7 +50,7 @@ class JobSeekerNotification extends Notification
     public function toDatabase(object $notifiable)
     {
         return new DatabaseMessage([
-            'message' => $this->message,
+            'data' => ['message' => $this->message],
         ]);
     }
 
