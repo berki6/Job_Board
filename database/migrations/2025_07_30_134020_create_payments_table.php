@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('job_id')->constrained()->onDelete('cascade');
+            $table->foreignId('job_id')->constrained('jobs_listing')->onDelete('cascade');
             $table->string('stripe_id')->unique(); // Stripe payment ID
             $table->decimal('amount', 10, 2);
             $table->string('status')->default('completed');

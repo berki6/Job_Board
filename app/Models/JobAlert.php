@@ -2,11 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class JobAlert extends Model
 {
-    protected $fillable = ['user_id', 'keywords', 'location', 'category_id', 'job_type_id', 'frequency'];
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
+    protected $fillable = [
+        'user_id',
+        'keywords',
+        'location',
+        'category_id',
+        'job_type_id',
+        'frequency'
+    ];
 
     protected $casts = [
         'keywords' => 'array',
