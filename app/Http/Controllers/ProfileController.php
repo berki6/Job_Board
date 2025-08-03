@@ -28,8 +28,20 @@ class ProfileController extends Controller
     {
         $request->user()->fill($request->validated());
 
+        if ($request->hasFile('resume')) {
+            $resume = $request->file('resume');
+            $resumePath = $resume->store('resumes', 'public');
+            $request->user()->profile()->update(['resume_path' => $resumePath]);
+        }
+
+        if ($request->hasFile('logo')) {
+            $logo = $request->file('logo');
+            $logoPath = $logo->store('logos', 'public');
+            $request->user()->profile()->update(['logo_path' => $logoPath]);
+        }
+
         if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+            $request->user()->email_verified_at = $request->user()->email_verified_at->setNull();
         }
 
         $request->user()->save();

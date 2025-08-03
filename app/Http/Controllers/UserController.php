@@ -26,7 +26,7 @@ class UserController extends Controller
         $user = $request->user();
         $profile = $user->profile()->with('user.skills')->firstOrFail();
 
-        return view('profile.show', compact('profile'));
+        return view('profile.edit', compact('profile', 'user'));
     }
 
     // Show profile edit form
@@ -47,12 +47,23 @@ class UserController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email' . ($user->id ? ',' . $user->id : ''),
             'bio' => 'nullable|string|max:1000',
-            'resume' => 'nullable|file|mimes:pdf|max:5120',
+            'resume_path' => 'nullable|file|mimes:pdf|max:5120',
             'company_name' => 'nullable|string|max:255|required_if:role,employer',
             'website' => 'nullable|url|max:255',
-            'logo' => 'nullable|image|mimes:jpeg,png|max:2048',
-        ]);
+            'logo_path' => 'nullable|image|mimes:jpeg,png|max:2048',
+            'phone' => 'nullable|string|max:20',
+            'skills' => 'nullable|array',
+            'skills.*' => 'string|exists:skills,name',
+        ])->after(function ($validator) use ($request, $user) {
+            if ($request->hasFile('resume_path') && !$user->hasRole('job_seeker')) {
+                $validator->errors()->add('resume_path', 'You must be a job seeker to upload a resume.');
+            }
+        });
+        // Validate the request
+        $validator->validate();
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -60,7 +71,17 @@ class UserController extends Controller
 
         $profile = $user->profile()->firstOrCreate(['user_id' => $user->id]);
 
-        $data = $request->only(['bio', 'company_name', 'website']);
+        // Ensure the profile exists
+        if (!$profile) {
+            return redirect()->back()->withErrors(['profile' => 'Profile not found'])->withInput();
+        }
+
+        $user->update([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+        ]);
+
+        $data = $request->only(['bio', 'company_name', 'website', 'resume_path', 'logo_path', 'phone', 'skills']);
 
         if ($request->hasFile('resume') && $user->hasRole('job_seeker')) {
             if ($profile->resume_path) {

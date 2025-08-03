@@ -24,11 +24,11 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'role:admin'])->get('/horizon', fn() => redirect('/horizon'));
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
 
 // Public routes
 Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
@@ -73,7 +73,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Other authenticated routes
     Route::get('/profile', [UserController::class, 'profile'])->name('profile.show');
     Route::get('/profile/edit', [UserController::class, 'editProfile'])->name('profile.edit');
-    Route::post('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::patch('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::delete('/profile', [UserController::class, 'destroyAccount'])->name('profile.destroy');
     Route::get('/profile/skills', [UserController::class, 'editSkills'])->name('profile.skills');
     Route::post('/skills', [UserController::class, 'addSkills'])->name('skills.add');
     Route::delete('/skills', [UserController::class, 'removeSkills'])->name('skills.remove');
