@@ -3,6 +3,10 @@
 use App\Models\User;
 
 describe('AutoApplyController', function () {
+    beforeEach(function () {
+        // Seed roles and permissions
+        $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
+    });
     it('requires authentication to access auto apply page', function () {
         $response = $this->get(route('auto.apply'));
 
@@ -19,7 +23,7 @@ describe('AutoApplyController', function () {
     });
 
     it('shows auto apply page for premium users', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->get(route('auto.apply'));
 
@@ -29,7 +33,7 @@ describe('AutoApplyController', function () {
     });
 
     it('shows default preferences for new users', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->get(route('auto.apply'));
 
@@ -42,7 +46,7 @@ describe('AutoApplyController', function () {
     });
 
     it('shows existing preferences for users', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         $preferences = createAutoApplyPreferences($user, [
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
@@ -60,7 +64,7 @@ describe('AutoApplyController', function () {
     });
 
     it('can update auto apply preferences', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'job_titles' => '["Senior Developer", "Lead Engineer"]',
@@ -82,7 +86,7 @@ describe('AutoApplyController', function () {
     });
 
     it('validates update request data', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'salary_min' => 'invalid',
@@ -93,7 +97,7 @@ describe('AutoApplyController', function () {
     });
 
     it('can toggle auto apply on', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->get(route('auto.apply.toggle'));
 
@@ -105,7 +109,7 @@ describe('AutoApplyController', function () {
     });
 
     it('can toggle auto apply off', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
 
         $response = $this->actingAs($user)->get(route('auto.apply.toggle'));
@@ -118,7 +122,7 @@ describe('AutoApplyController', function () {
     });
 
     it('creates preferences when toggling for new users', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         expect($user->autoApplyPreference)->toBeNull();
 
@@ -132,7 +136,7 @@ describe('AutoApplyController', function () {
     });
 
     it('handles JSON parsing errors gracefully', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
 
         $response = $this->actingAs($user)->post(route('auto.apply.update'), [
             'job_titles' => 'invalid json',

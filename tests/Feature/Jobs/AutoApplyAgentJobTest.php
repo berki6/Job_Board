@@ -10,9 +10,13 @@ use App\Services\AIServices;
 use App\Services\AutoApplyService;
 
 describe('AutoApplyAgentJob', function () {
+    beforeEach(function () {
+        // Seed roles and permissions
+        $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
+    });
     it('processes premium users with auto apply enabled', function () {
         // Create premium user with profile and preferences
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create([
             'user_id' => $user->id,
             'resume_path' => 'resumes/test.pdf',
@@ -27,7 +31,7 @@ describe('AutoApplyAgentJob', function () {
         $job = Job::factory()->create([
             'title' => 'Developer',
             'location' => 'Remote',
-            'status' => 'open',
+            'is_open' => true,
         ]);
 
         // Mock AIServices so generateCoverLetter returns a dummy cover letter
@@ -57,7 +61,7 @@ describe('AutoApplyAgentJob', function () {
         Profile::factory()->create(['user_id' => $user->id]);
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
 
-        Job::factory()->create(['status' => 'open']);
+        Job::factory()->create(['is_open' => true]);
 
         // Execute the job
         $job = new AutoApplyAgentJob;
@@ -69,11 +73,11 @@ describe('AutoApplyAgentJob', function () {
     });
 
     it('skips users without auto apply preferences', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create(['user_id' => $user->id]);
         // No preferences created
 
-        Job::factory()->create(['status' => 'open']);
+        Job::factory()->create(['is_open' => true]);
 
         $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
@@ -82,11 +86,11 @@ describe('AutoApplyAgentJob', function () {
     });
 
     it('skips users with disabled auto apply', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create(['user_id' => $user->id]);
         createAutoApplyPreferences($user, ['auto_apply_enabled' => false]);
 
-        Job::factory()->create(['status' => 'open']);
+        Job::factory()->create(['is_open' => true]);
 
         $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
@@ -105,7 +109,7 @@ describe('AutoApplyAgentJob', function () {
         createAutoApplyPreferences($user2, ['auto_apply_enabled' => true]);
 
         // Create job
-        $job = Job::factory()->create(['status' => 'open']);
+        $job = Job::factory()->create(['is_open' => true]);
 
         // Mock AI service for both users
         $this->mock(AIServices::class, function ($mock) {
@@ -123,11 +127,11 @@ describe('AutoApplyAgentJob', function () {
     });
 
     it('handles users without profiles gracefully', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         // No profile created
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
 
-        Job::factory()->create(['status' => 'open']);
+        Job::factory()->create(['is_open' => true]);
 
         $job = new AutoApplyAgentJob;
         $job->handle(app(AutoApplyService::class));
@@ -141,7 +145,7 @@ describe('AutoApplyAgentJob', function () {
     });
 
     it('loads users with relationships', function () {
-        $user = createPremiumUser();
+        $user = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create(['user_id' => $user->id]);
         createAutoApplyPreferences($user, ['auto_apply_enabled' => true]);
 

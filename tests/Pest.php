@@ -74,7 +74,7 @@ function createUserWithProfile($userAttributes = [], $profileAttributes = [])
 // Helper function to create a job
 function createJob($attributes = [])
 {
-    $company = createUser(['name' => 'Test Company']);
+    $company = createUser(['name' => 'Test Company'])->assignRole('employer');
 
     return \App\Models\Job::factory()->create(array_merge([
         'user_id' => $company->id,
@@ -84,6 +84,8 @@ function createJob($attributes = [])
         'salary_min' => 80000,
         'salary_max' => 90000,
         'status' => 'published',
+        'is_open' => true,
+        'company_name' => $company->name,
     ], $attributes));
 }
 // Helper function to create an application
@@ -112,7 +114,7 @@ function createAutoApplyPreferences($user, $attributes = [])
 
     // Merge defaults with attributes
     $merged = array_merge($defaults, $attributes);
-
+// dd($merged);
     // Remove JSON encoding — just pass arrays as-is (or null)
     // Eloquent will handle JSON encoding automatically because of $casts
     return App\Models\AutoApplyPreference::create($merged);

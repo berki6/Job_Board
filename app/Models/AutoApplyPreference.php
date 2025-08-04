@@ -25,6 +25,8 @@ class AutoApplyPreference extends Model
         'job_titles' => 'array',
         'locations' => 'array',
         'job_types' => 'array',
+        'salary_min' => 'integer',
+        'salary_max' => 'integer',
     ];
 
     public function user()

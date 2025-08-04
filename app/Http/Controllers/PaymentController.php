@@ -58,7 +58,7 @@ class PaymentController extends Controller
 
             Cache::forget('jobs_page_'.$request->page);
 
-            return redirect()->route('dashboard.employer')->with('success', 'Payment successful, job featured');
+            return redirect()->route('employer.dashboard')->with('success', 'Payment successful, job featured');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Payment failed: '.$e->getMessage());
         }

@@ -58,7 +58,7 @@ class JobAlertController extends Controller
             'frequency',
         ]));
 
-        return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert created');
+        return redirect()->route('job-seeker.dashboard')->with('success', 'Job alert created');
     }
 
     // Delete job alert
@@ -70,6 +70,6 @@ class JobAlertController extends Controller
         }
         $jobAlert->delete();
 
-        return redirect()->route('dashboard.job-seeker')->with('success', 'Job alert deleted');
+        return redirect()->route('job-seeker.dashboard')->with('success', 'Job alert deleted');
     }
 }
