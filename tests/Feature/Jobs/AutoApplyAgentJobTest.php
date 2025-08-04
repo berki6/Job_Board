@@ -8,11 +8,23 @@ use App\Models\Profile;
 use App\Models\User;
 use App\Services\AIServices;
 use App\Services\AutoApplyService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 describe('AutoApplyAgentJob', function () {
+    uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
     beforeEach(function () {
         // Seed roles and permissions
         $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
+
+        // **VERY IMPORTANT: Start with a clean slate**
+        DB::table('applications')->truncate();
+        DB::table('auto_apply_logs')->truncate();
+        DB::table('jobs_listing')->truncate();
+        DB::table('users')->truncate();
+
+        Cache::flush(); // Clear the cache
+
     });
     it('processes premium users with auto apply enabled', function () {
         // Create premium user with profile and preferences
@@ -25,13 +37,18 @@ describe('AutoApplyAgentJob', function () {
             'auto_apply_enabled' => true,
             'job_titles' => ['Developer'],
             'locations' => ['Remote'],
+            'salary_min' => 0,
+            'salary_max' => 900000,
+            'job_types' => ['Full-time'],
         ]);
 
         // Create matching job
-        $job = Job::factory()->create([
+        $job1 = Job::factory()->create([
             'title' => 'Developer',
             'location' => 'Remote',
             'is_open' => true,
+            'salary_min' => 60000,
+            'salary_max' => 120000,
         ]);
 
         // Mock AIServices so generateCoverLetter returns a dummy cover letter
@@ -41,7 +58,7 @@ describe('AutoApplyAgentJob', function () {
             ->andReturn('Generated cover letter');
 
         // Bind mocked AI service in container to be injected where needed
-        $this->app->bind(AIServices::class, fn () => $mockAI);
+        $this->app->bind(AIServices::class, fn() => $mockAI);
 
         // Resolve AutoApplyService manually with mocked AI service injected
         $autoApplyService = $this->app->make(AutoApplyService::class);
@@ -100,16 +117,42 @@ describe('AutoApplyAgentJob', function () {
 
     it('processes multiple premium users', function () {
         // Create two premium users
-        $user1 = createPremiumUser();
+        $user1 = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create(['user_id' => $user1->id, 'resume_path' => 'resume1.pdf']);
-        createAutoApplyPreferences($user1, ['auto_apply_enabled' => true]);
+        createAutoApplyPreferences($user1, [
+            'auto_apply_enabled' => true,
+            'job_titles' => ['Developer'],
+            'locations' => ['Remote'],
+            'salary_min' => 0,
+            'salary_max' => 100000,
+        ]);
 
-        $user2 = createPremiumUser();
+        $user2 = createPremiumUser()->assignRole('job_seeker');
         Profile::factory()->create(['user_id' => $user2->id, 'resume_path' => 'resume2.pdf']);
-        createAutoApplyPreferences($user2, ['auto_apply_enabled' => true]);
+        createAutoApplyPreferences($user2, [
+            'auto_apply_enabled' => true,
+            'job_titles' => ['Designer'],
+            'locations' => ['Remote'],
+            'salary_min' => 0,
+            'salary_max' => 100000,
+        ]);
 
-        // Create job
-        $job = Job::factory()->create(['is_open' => true]);
+        // Create two jobs
+        $job1 = Job::factory()->create([
+            'title' => 'Developer',
+            'location' => 'Remote',
+            'is_open' => true,
+            'salary_min' => 60000,
+            'salary_max' => 120000,
+        ]);
+
+        $job2 = Job::factory()->create([
+            'title' => 'Designer',
+            'location' => 'Remote',
+            'is_open' => true,
+            'salary_min' => 60000,
+            'salary_max' => 120000,
+        ]);
 
         // Mock AI service for both users
         $this->mock(AIServices::class, function ($mock) {
@@ -118,12 +161,19 @@ describe('AutoApplyAgentJob', function () {
                 ->andReturn('Generated cover letter');
         });
 
-        $autoApplyJob = new AutoApplyAgentJob;
-        $autoApplyJob->handle(app(AutoApplyService::class));
+        $job = new AutoApplyAgentJob;
+        $job->handle(app(AutoApplyService::class));
 
         // Assert both users applied
         expect(Application::count())->toBe(2)
             ->and(AutoApplyLog::where('status', 'success')->count())->toBe(2);
+        // Check logs for both users
+        $logs = AutoApplyLog::whereIn('user_id', [$user1->id, $user2->id])->get();
+        $statuses = $logs->pluck('status')->unique()->toArray();
+        $userIds = $logs->pluck('user_id')->unique()->sort()->values()->toArray();
+
+        expect($statuses)->toEqual(['success', 'completed'])
+            ->and($userIds)->toEqual([$user1->id, $user2->id]);
     });
 
     it('handles users without profiles gracefully', function () {

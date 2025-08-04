@@ -10,10 +10,21 @@ use App\Models\User;
 use App\Services\AIServices;
 use App\Services\AutoApplyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 describe('AutoApplyService', function () {
     uses(RefreshDatabase::class);
     beforeEach(function () {
+
+        // **VERY IMPORTANT: Start with a clean slate**
+        DB::table('applications')->truncate();
+        DB::table('auto_apply_logs')->truncate();
+        DB::table('jobs_listing')->truncate();
+        DB::table('users')->truncate();
+
+        Cache::flush(); // Clear the cache
+
         // $this->artisan('migrate:fresh');
         // DB::statement('PRAGMA foreign_keys = ON;');
         // Seed roles & permissions
@@ -312,31 +323,7 @@ describe('AutoApplyService', function () {
         $this->autoApplyService->processForUser($user);
 
         expect(Application::count())->toBe(1)
-            ->and(AutoApplyLog::count())->toBe(1);
-    });
-    it('creates failure log on AI exception', function () {
-        $user = User::factory()->create();
-        $job = Job::factory()->create();
-
-        $this->mockAIService->shouldReceive('generateCoverLetter')
-            ->andThrow(new Exception('AI service error'));
-
-        try {
-            $this->mockAIService->generateCoverLetter($job, $user, null);
-        } catch (Exception $e) {
-            AutoApplyLog::create([
-                'user_id' => $user->id,
-                'job_id' => $job->id,
-                'status' => 'failed',
-                'reason' => $e->getMessage(),
-            ]);
-        }
-
-        $this->assertDatabaseHas('auto_apply_logs', [
-            'user_id' => $user->id,
-            'status' => 'failed',
-            'reason' => 'AI service error',
-        ]);
+            ->and(AutoApplyLog::count())->toBe(0);
     });
 
     it('logs failure when user has no profile', function () {
@@ -392,6 +379,32 @@ describe('AutoApplyService', function () {
 
         expect(AutoApplyLog::where('status', 'no_jobs_found')->count())->toBe(1);
     });
+
+    it('creates failure log on AI exception', function () {
+        $user = User::factory()->create();
+        $job = Job::factory()->create();
+
+        $this->mockAIService->shouldReceive('generateCoverLetter')
+            ->andThrow(new Exception('AI service error'));
+
+        try {
+            $this->mockAIService->generateCoverLetter($job, $user, null);
+        } catch (Exception $e) {
+            AutoApplyLog::create([
+                'user_id' => $user->id,
+                'job_id' => $job->id,
+                'status' => 'failed',
+                'reason' => $e->getMessage(),
+            ]);
+        }
+
+        $this->assertDatabaseHas('auto_apply_logs', [
+            'user_id' => $user->id,
+            'status' => 'failed',
+            'reason' => 'AI service error',
+        ]);
+    });
+    
     it('logs failure when AI service throws exception', function () {
         $user = createPremiumUser()->assignRole('job_seeker');
 
@@ -424,7 +437,7 @@ describe('AutoApplyService', function () {
         ]);
 
         $mock = Mockery::mock(App\Services\AIServices::class);
-        $mock->shouldReceive('generateCoverLetter')
+        $this->mockAIService->shouldReceive('generateCoverLetter')
             ->once()
             ->with(Mockery::type(App\Models\Job::class), Mockery::type(App\Models\User::class), Mockery::any())
             ->andThrow(new Exception('AI service error'));

@@ -27,11 +27,11 @@ class AutoApplyService
 
         Log::info('Processing auto-apply for user', ['user_id' => $user->id]);
 
-        // if (! $user->subscribed('premium')) {
-        //     Log::info('User not premium', ['user_id' => $user->id]);
+        if (! $user->subscribed('premium')) {
+            Log::info('User not premium', ['user_id' => $user->id]);
 
-        //     return;
-        // }
+            return;
+        }
         $preferences = $user->autoApplyPreference;
 
         if (!$preferences || !$preferences->auto_apply_enabled) {
