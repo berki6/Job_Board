@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('slug')->unique(); // SEO-friendly URL
             $table->timestamps();
             $table->softDeletes();
-            $table->index(['status', 'is_open', 'is_featured', 'category_id', 'job_type_id','title', 'description']);
+            $table->index(['status', 'is_open', 'is_featured', 'category_id', 'job_type_id', 'title', 'description']);
         });
     }
 

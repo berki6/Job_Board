@@ -114,7 +114,8 @@ function createAutoApplyPreferences($user, $attributes = [])
 
     // Merge defaults with attributes
     $merged = array_merge($defaults, $attributes);
-// dd($merged);
+
+    // dd($merged);
     // Remove JSON encoding — just pass arrays as-is (or null)
     // Eloquent will handle JSON encoding automatically because of $casts
     return App\Models\AutoApplyPreference::create($merged);

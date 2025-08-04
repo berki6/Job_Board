@@ -2,21 +2,22 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
 use App\Models\Application;
+use App\Models\User;
+use App\Notifications\JobSeekerNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\JobSeekerNotification;
 
 class NotifyJobSeekerJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $jobSeeker;
+
     protected $application;
 
     /**

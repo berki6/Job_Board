@@ -10,7 +10,7 @@ describe('Profile Page', function () {
         $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
         // // Create a user with job seeker role
         // $user = User::factory()->create()->assignRole('job_seeker');
-        // $this->actingAs($user); 
+        // $this->actingAs($user);
     });
     test('profile page is displayed', function () {
         $user = User::factory()->create()->assignRole('employer');

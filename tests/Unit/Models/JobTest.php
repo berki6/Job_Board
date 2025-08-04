@@ -153,7 +153,7 @@ describe('Job Model', function () {
     });
 
     it('can be unsaved by users', function () {
-        $user = User::factory()->create()->assignRole('job_seeker');;
+        $user = User::factory()->create()->assignRole('job_seeker');
         $job = Job::factory()->create();
 
         $job->savedBy()->attach($user->id);
@@ -217,7 +217,7 @@ describe('Job Model', function () {
 
         expect($filteredJobs)->toHaveCount(2); // Both Jobs
 
-        //Add to check specific jobs.
+        // Add to check specific jobs.
         expect($filteredJobs[0]->id)->toBe($job1->id);
         expect($filteredJobs[1]->id)->toBe($job2->id);
     });

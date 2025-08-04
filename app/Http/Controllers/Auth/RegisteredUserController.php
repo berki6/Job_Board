@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -44,8 +43,9 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
-            if (!$user) {
+            if (! $user) {
                 Log::error('User creation failed', ['request' => $request->all()]);
+
                 return back()->withErrors(['email' => 'User creation failed.']);
             }
 
@@ -55,8 +55,9 @@ class RegisteredUserController extends Controller
 
             Auth::login($user);
 
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 Log::error('Login failed after user creation', ['user_id' => $user->id]);
+
                 return back()->withErrors(['email' => 'Login failed after registration.']);
             }
 
@@ -68,6 +69,7 @@ class RegisteredUserController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Registration error', ['error' => $e->getMessage(), 'request' => $request->all()]);
+
             return back()->withErrors(['email' => 'An error occurred during registration.']);
         }
     }

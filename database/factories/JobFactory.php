@@ -38,16 +38,16 @@ class JobFactory extends Factory
 
     public function closed(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_open' => tap(false, function ($isOpen) {
-                dump("Setting is_open to: " . ($isOpen ? 'true' : 'false'));
+                dump('Setting is_open to: '.($isOpen ? 'true' : 'false'));
             }),
         ]);
     }
 
     public function withSalaryRange(int $min, int $max): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'salary_min' => $min,
             'salary_max' => $max,
         ]);

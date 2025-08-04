@@ -20,7 +20,7 @@ class PaymentController extends Controller
     public function create(Job $job, Request $request)
     {
         $user = $request->user();
-        if (!$user->can('create_payment', $job)) {
+        if (! $user->can('create_payment', $job)) {
             abort(403, 'Unauthorized');
         }
         $intent = $request->user()->createSetupIntent();
@@ -32,7 +32,7 @@ class PaymentController extends Controller
     public function store(Request $request, Job $job)
     {
         $user = $request->user();
-        if (!$user->can('create_payment', $job)) {
+        if (! $user->can('create_payment', $job)) {
             abort(403, 'Unauthorized');
         }
 

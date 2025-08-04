@@ -7,7 +7,6 @@ use App\Models\JobAlert;
 use App\Models\JobType;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class JobAlertController extends Controller
@@ -21,7 +20,7 @@ class JobAlertController extends Controller
     public function create()
     {
         $user = request()->user();
-        if (!$user->can('create-job-alert')) {
+        if (! $user->can('create-job-alert')) {
             abort(403, 'Unauthorized');
         }
         $categories = Category::all();
@@ -34,7 +33,7 @@ class JobAlertController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('create-job-alert')) {
+        if (! $user->can('create-job-alert')) {
             abort(403, 'Unauthorized');
         }
 
@@ -65,7 +64,7 @@ class JobAlertController extends Controller
     public function destroy(JobAlert $jobAlert)
     {
         $user = request()->user();
-        if (!$user->can('delete-job-alert', $jobAlert)) {
+        if (! $user->can('delete-job-alert', $jobAlert)) {
             abort(403, 'Unauthorized');
         }
         $jobAlert->delete();

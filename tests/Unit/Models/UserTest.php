@@ -9,8 +9,8 @@ use App\Models\JobType;
 use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 beforeEach(function () {
@@ -19,7 +19,7 @@ beforeEach(function () {
     $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
     // // Create a user with job seeker role
     // $user = User::factory()->create()->assignRole('job_seeker');
-    // $this->actingAs($user); 
+    // $this->actingAs($user);
 });
 
 describe('User Model', function () {
@@ -80,7 +80,7 @@ describe('User Model', function () {
             'logo_path' => null, // Assuming logo_path is nullable
             'resume_path' => null, // Assuming resume_path is nullable
             'skills' => $skills,
-        ])->fresh(); 
+        ])->fresh();
 
         expect($profile->user_id)->toBe($user->id)
             ->and($profile->bio)->toBe('This is a test bio.')
@@ -88,7 +88,7 @@ describe('User Model', function () {
             ->and($profile->website)->toBe('https://example.com')
             ->and($profile->logo_path)->toBeNull()
             ->and($profile->resume_path)->toBeNull()
-            ->and($profile->skills)->toBe(['PHP', 'JavaScript', 'Laravel']);        
+            ->and($profile->skills)->toBe(['PHP', 'JavaScript', 'Laravel']);
     });
 
     it('can create a profile without optional fields', function () {
@@ -97,7 +97,7 @@ describe('User Model', function () {
             'user_id' => $user->id,
             'bio' => 'This is a test bio.',
             'phone' => '123-456-7890',
-            'logo_path' => null, 
+            'logo_path' => null,
             'skills' => ['PHP', 'JavaScript', 'Laravel'],
         ])->fresh(); // Use fresh to get the latest state of the model after creation
 

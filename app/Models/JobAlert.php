@@ -20,7 +20,7 @@ class JobAlert extends Model
         'location',
         'category_id',
         'job_type_id',
-        'frequency'
+        'frequency',
     ];
 
     protected $casts = [

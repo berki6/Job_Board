@@ -58,7 +58,7 @@ describe('AutoApplyAgentJob', function () {
             ->andReturn('Generated cover letter');
 
         // Bind mocked AI service in container to be injected where needed
-        $this->app->bind(AIServices::class, fn() => $mockAI);
+        $this->app->bind(AIServices::class, fn () => $mockAI);
 
         // Resolve AutoApplyService manually with mocked AI service injected
         $autoApplyService = $this->app->make(AutoApplyService::class);

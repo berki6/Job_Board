@@ -42,19 +42,20 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
     /**
      * Indicate that the user is banned.
-     *
-     * @return static
      */
     public function withPassword(string $password): static
     {
         static::$password = Hash::make($password);
 
         return $this;
-    }   
+    }
+
     public function banned(): static
-    {        return $this->state(fn (array $attributes) => [
+    {
+        return $this->state(fn (array $attributes) => [
             'is_banned' => true,
         ]);
     }

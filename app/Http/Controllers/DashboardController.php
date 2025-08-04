@@ -21,7 +21,7 @@ class DashboardController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        if (!$user->can('view_job_seeker_dashboard')) {
+        if (! $user->can('view_job_seeker_dashboard')) {
             abort(403, 'Unauthorized');
         }
 
@@ -39,7 +39,7 @@ class DashboardController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        if (!$user->can('view_employer_dashboard')) {
+        if (! $user->can('view_employer_dashboard')) {
             abort(403, 'Unauthorized');
         }
 
@@ -61,7 +61,7 @@ class DashboardController extends Controller
     public function admin(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('view_admin_dashboard')) {
+        if (! $user->can('view_admin_dashboard')) {
             abort(403, 'Unauthorized');
         }
 

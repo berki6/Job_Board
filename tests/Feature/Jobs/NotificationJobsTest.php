@@ -1,18 +1,18 @@
 <?php
 
-use App\Models\User;
-use App\Models\Job;
-use App\Models\Application;
 use App\Jobs\NotifyEmployerJob;
 use App\Jobs\NotifyJobSeekerJob;
+use App\Models\Application;
 use App\Models\Category;
+use App\Models\Job;
 use App\Models\JobType;
+use App\Models\User;
 use App\Notifications\EmployerNotification;
 use App\Notifications\JobSeekerNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 
 // Don't use RefreshDatabase here since it's already used globally
 
@@ -114,7 +114,7 @@ describe('NotificationJob', function () {
         $application = Application::factory()->create([
             'user_id' => $jobSeeker->id,
             'job_id' => $job->id,
-            'status' => 'approved'
+            'status' => 'approved',
         ]);
 
         NotifyJobSeekerJob::dispatch($jobSeeker, $application);
@@ -138,12 +138,12 @@ describe('NotificationJob', function () {
         Log::info('Notification sent to job seeker.', [
             'jobSeeker' => $jobSeeker->id,
             'application' => $application->id,
-            'message' => "Your application for {$application->job->title} has been {$application->status}"
+            'message' => "Your application for {$application->job->title} has been {$application->status}",
         ]);
 
         // Notification::assertSentTo($jobSeeker, JobSeekerNotification::class, function ($notification, $channels) use ($application) {
         //     return $notification->toDatabase($notification->toDatabase($channels))->message === "Your application for {$application->job->title} has been {$application->status}";
-        // });                              
+        // });
     });
 
     it('dispatches NotifyJobSeeker job and stores notification', function () {
@@ -162,7 +162,7 @@ describe('NotificationJob', function () {
         $application = Application::factory()->create([
             'user_id' => $jobSeeker->id,
             'job_id' => $job->id,
-            'status' => 'approved'
+            'status' => 'approved',
         ]);
 
         // Act: Dispatch the NotifyJobSeeker job

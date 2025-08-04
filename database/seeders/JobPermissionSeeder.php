@@ -50,7 +50,7 @@ class JobPermissionSeeder extends Seeder
             'edit_jobs',
             'delete_jobs',
             'update',
-            'view-admin-dashboard'
+            'view-admin-dashboard',
         ]);
         $employer->givePermissionTo([
             'create_jobs',
@@ -63,7 +63,7 @@ class JobPermissionSeeder extends Seeder
             'create_payment',
             'application_view',
             'application_update_status',
-            'view-employer-dashboard'
+            'view-employer-dashboard',
         ]);
         $job_seeker->givePermissionTo([
             'apply_jobs',
@@ -77,7 +77,7 @@ class JobPermissionSeeder extends Seeder
             'application_destroy',
             'application_update',
             'application_view',
-            'view-job-seeker-dashboard'
+            'view-job-seeker-dashboard',
         ]);
 
         // // Assign roles to users (example)

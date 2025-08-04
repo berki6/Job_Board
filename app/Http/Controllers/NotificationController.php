@@ -25,6 +25,7 @@ class NotificationController extends Controller
     {
         $notification = $request->user()->notifications()->findOrFail($notification);
         $notification->markAsRead();
+
         return redirect()->route('notifications.index')->with('success', 'Notification marked as read.');
     }
 }

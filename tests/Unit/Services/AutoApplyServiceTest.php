@@ -136,7 +136,6 @@ describe('AutoApplyService', function () {
             'salary_max' => 999999, // or large number to avoid filtering out
         ]);
 
-
         $jobType = JobType::where('name', 'Full-time')->firstOrFail();
         Job::factory()->create([
             'user_id' => User::factory()->create()->id,
@@ -404,7 +403,7 @@ describe('AutoApplyService', function () {
             'reason' => 'AI service error',
         ]);
     });
-    
+
     it('logs failure when AI service throws exception', function () {
         $user = createPremiumUser()->assignRole('job_seeker');
 

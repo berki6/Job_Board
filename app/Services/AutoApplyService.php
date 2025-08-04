@@ -34,7 +34,7 @@ class AutoApplyService
         }
         $preferences = $user->autoApplyPreference;
 
-        if (!$preferences || !$preferences->auto_apply_enabled) {
+        if (! $preferences || ! $preferences->auto_apply_enabled) {
             Log::info('No preferences or auto apply disabled', ['user_id' => $user->id]);
 
             return;
@@ -47,7 +47,7 @@ class AutoApplyService
         Log::info('Filtered jobs for user', ['user_id' => $user->id, 'filtered_jobs' => $jobs->toArray()]);
 
         $profile = $user->profile;
-        if (!$profile || !$profile->resume_path) {
+        if (! $profile || ! $profile->resume_path) {
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'failed',
@@ -99,6 +99,7 @@ class AutoApplyService
                         'status' => 'failed',
                         'reason' => $e->getMessage(),
                     ]);
+
                     // Skip this job, continue with next
                     continue;
                 }
@@ -140,12 +141,12 @@ class AutoApplyService
         }
 
         // Final summary log
-        if (!empty($appliedJobs)) {
+        if (! empty($appliedJobs)) {
             AutoApplyLog::create([
                 'user_id' => $user->id,
                 'status' => 'completed',
                 'reason' => count($appliedJobs) > 0
-                    ? 'Auto-apply completed successfully for ' . count($appliedJobs) . ' jobs'
+                    ? 'Auto-apply completed successfully for '.count($appliedJobs).' jobs'
                     : 'No jobs applied successfully',
             ]);
         }
@@ -153,11 +154,12 @@ class AutoApplyService
 
         return $appliedJobs;
     }
+
     /**
      * Get filtered jobs according to all user preferences.
      *
-     * @param  object $preferences User preferences object containing salary_min, salary_max, job_titles, locations, job_types
-     * @param  int|null $userId Optional user ID to exclude already applied jobs
+     * @param  object  $preferences  User preferences object containing salary_min, salary_max, job_titles, locations, job_types
+     * @param  int|null  $userId  Optional user ID to exclude already applied jobs
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getFilteredJobs($preferences, $userId = null)
@@ -165,7 +167,7 @@ class AutoApplyService
         $query = Job::query()->where('is_open', true);
 
         if ($userId !== null) {
-            $query->whereDoesntHave('applications', fn($q) => $q->where('user_id', $userId));
+            $query->whereDoesntHave('applications', fn ($q) => $q->where('user_id', $userId));
         }
 
         $query->whereBetween('salary_min', [$preferences->salary_min, $preferences->salary_max]);
@@ -177,11 +179,11 @@ class AutoApplyService
 
         $jobTitles = array_filter($jobTitles);
 
-        if (!empty($jobTitles)) {
+        if (! empty($jobTitles)) {
             $query->where(function ($q) use ($jobTitles) {
                 foreach ($jobTitles as $title) {
                     $title = strtolower($title);
-                    if (!empty($title)) {
+                    if (! empty($title)) {
                         $q->orWhereRaw('LOWER(title) LIKE ?', ["%{$title}%"]);
                     }
                 }
@@ -193,7 +195,7 @@ class AutoApplyService
             ? json_decode($preferences->locations, true) ?? [$preferences->locations]
             : (array) $preferences->locations;
         $locations = array_filter($locations);
-        if (!empty($locations)) {
+        if (! empty($locations)) {
             $query->whereIn('location', $locations);
         }
 
@@ -202,12 +204,12 @@ class AutoApplyService
             ? json_decode($preferences->job_types, true) ?? [$preferences->job_types]
             : (array) $preferences->job_types;
         $jobTypes = array_filter($jobTypes);
-        if (!empty($jobTypes)) {
+        if (! empty($jobTypes)) {
             $jobTypeIds = \App\Models\JobType::whereIn(DB::raw('LOWER(name)'), array_map('strtolower', $jobTypes))
                 ->pluck('id')
                 ->toArray();
 
-            if (!empty($jobTypeIds)) {
+            if (! empty($jobTypeIds)) {
                 $query->whereIn('job_type_id', $jobTypeIds);
             } else {
                 $query->whereRaw('0 = 1'); // forces zero results if no matching job types

@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -18,7 +17,7 @@ beforeEach(function () {
     $this->artisan('db:seed', ['--class' => 'JobPermissionSeeder']);
     // // Create a user with job seeker role
     // $user = User::factory()->create()->assignRole('job_seeker');
-    // $this->actingAs($user); 
+    // $this->actingAs($user);
 });
 
 it('can be created with valid data', function () {
@@ -211,7 +210,7 @@ it('can handle file uploads for resumes', function () {
     $resumePath = $response->getSession()->get('resume_path');
 
     // Build expected value ('resumes/<filename>')
-    $expectedPath = 'resumes/' . pathinfo($resumePath, PATHINFO_BASENAME);
+    $expectedPath = 'resumes/'.pathinfo($resumePath, PATHINFO_BASENAME);
 
     // Assert that the database has the record with the correct path
     $this->assertDatabaseHas('applications', [
@@ -280,9 +279,8 @@ it('can be updated with new data', function () {
     $response->assertRedirect();
     $application->refresh();
     $filePath = $application->resume_path;
-    $expectedFilename = pathinfo($filePath, PATHINFO_DIRNAME) . '/' . pathinfo($filePath, PATHINFO_BASENAME);
+    $expectedFilename = pathinfo($filePath, PATHINFO_DIRNAME).'/'.pathinfo($filePath, PATHINFO_BASENAME);
 
-    
     expect($application->fresh()->cover_letter)->toEqual($newCoverLetter);
     expect($application->resume_path)->toContain($expectedFilename);
 
@@ -340,4 +338,3 @@ it('can be retrieved by employers', function () {
         return $applications->contains($application);
     });
 });
-

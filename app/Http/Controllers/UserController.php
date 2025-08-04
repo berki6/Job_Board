@@ -42,13 +42,13 @@ class UserController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('update-profile')) {
+        if (! $user->can('update-profile')) {
             abort(403, 'Unauthorized');
         }
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email' . ($user->id ? ',' . $user->id : ''),
+            'email' => 'required|string|email|max:255|unique:users,email'.($user->id ? ','.$user->id : ''),
             'bio' => 'nullable|string|max:1000',
             'resume_path' => 'nullable|file|mimes:pdf|max:5120',
             'company_name' => 'nullable|string|max:255|required_if:role,employer',
@@ -58,7 +58,7 @@ class UserController extends Controller
             'skills' => 'nullable|array',
             'skills.*' => 'string|exists:skills,name',
         ])->after(function ($validator) use ($request, $user) {
-            if ($request->hasFile('resume_path') && !$user->hasRole('job_seeker')) {
+            if ($request->hasFile('resume_path') && ! $user->hasRole('job_seeker')) {
                 $validator->errors()->add('resume_path', 'You must be a job seeker to upload a resume.');
             }
         });
@@ -72,7 +72,7 @@ class UserController extends Controller
         $profile = $user->profile()->firstOrCreate(['user_id' => $user->id]);
 
         // Ensure the profile exists
-        if (!$profile) {
+        if (! $profile) {
             return redirect()->back()->withErrors(['profile' => 'Profile not found'])->withInput();
         }
 
@@ -126,7 +126,7 @@ class UserController extends Controller
     public function editSkills(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('update-skills')) {
+        if (! $user->can('update-skills')) {
             abort(403, 'Unauthorized');
         }
         $skills = Skill::all();
@@ -139,7 +139,7 @@ class UserController extends Controller
     public function addSkills(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('update-skills')) {
+        if (! $user->can('update-skills')) {
             abort(403, 'Unauthorized');
         }
 
@@ -161,7 +161,7 @@ class UserController extends Controller
     public function removeSkills(Request $request)
     {
         $user = $request->user();
-        if (!$user->can('update-skills')) {
+        if (! $user->can('update-skills')) {
             abort(403, 'Unauthorized');
         }
 

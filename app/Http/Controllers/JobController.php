@@ -61,7 +61,7 @@ class JobController extends Controller
      */
     public function create(Request $request)
     {
-        if (!$request->user()->can('create_jobs')) {
+        if (! $request->user()->can('create_jobs')) {
             abort(403, 'Unauthorized');
         }
         $categories = Category::all();
@@ -75,7 +75,7 @@ class JobController extends Controller
     {
         // $user = Auth::user();
         $user = $request->user();
-        if (!$user->can('create_jobs')) {
+        if (! $user->can('create_jobs')) {
             abort(403, 'Unauthorized');
         }
 
@@ -119,7 +119,7 @@ class JobController extends Controller
     // Show job edit form
     public function edit(Job $job, Request $request)
     {
-        if (!$request->user()->can('edit_jobs')) {
+        if (! $request->user()->can('edit_jobs')) {
             abort(403, 'Unauthorized');
         }
         $categories = Category::all();
@@ -131,7 +131,7 @@ class JobController extends Controller
     // Update job
     public function update(Request $request, Job $job)
     {
-        if (!$request->user()->can('edit_jobs')) {
+        if (! $request->user()->can('edit_jobs')) {
             abort(403, 'Unauthorized');
         }
 
@@ -171,7 +171,7 @@ class JobController extends Controller
     // Toggle is_open status
     public function toggleOpen(Request $request, Job $job)
     {
-        if (!$request->user()->can('update')) {
+        if (! $request->user()->can('update')) {
             abort(403, 'Unauthorized');
         }
 
@@ -192,7 +192,7 @@ class JobController extends Controller
     // Delete job
     public function destroy(Job $job)
     {
-        if (!$job->user->can('delete_jobs')) {
+        if (! $job->user->can('delete_jobs')) {
             abort(403, 'Unauthorized');
         }
         $job->delete();
